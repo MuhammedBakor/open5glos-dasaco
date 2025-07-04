@@ -1,0 +1,18 @@
+# 5GLOS Configuration File
+
+# Port for the service to listen on
+listen_port: 38412
+
+# Kubernetes namespace for 5G services
+namespace: "free5gc"
+
+# AMF (Access and Mobility Management Function) label selector
+amf_label: "nf=amf"
+
+# Load balancer strategy: round-robin, least-connections, random
+load_balancer_strategy: "round-robin"
+
+logging:
+  level: "info"
+  format: "json"
+  time_format: "2006-01-02T15:04:05Z07:00"
