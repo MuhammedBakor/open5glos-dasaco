@@ -1,0 +1,17 @@
+resources:
+  - network_settings.yaml
+  - db.yaml
+  - nrf.yaml
+  - webui.yaml
+  - amf.yaml #amf_normal.yaml
+  - upf.yaml
+  - ausf.yaml
+  - nssf.yaml
+  - pcf.yaml
+  - udm.yaml
+  - udr.yaml
+  - nef.yaml
+  - chf.yaml
+  - smf.yaml
+  # - loxilb-deployment.yaml
+  - ueransim.yaml

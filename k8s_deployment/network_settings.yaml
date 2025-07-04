@@ -7,12 +7,14 @@ metadata:
   namespace: free5gc
   labels:
     app: free5gc
-    name: policy
+    nf: policy
     io.service: policy
 spec:
   podSelector:
     matchLabels:
       app: free5gc  # Applies to all free5gc pods
+      nf: policy
+      io.service: policy
   policyTypes:
     - Ingress
     - Egress
@@ -21,6 +23,8 @@ spec:
         - podSelector:
             matchLabels:
               app: free5gc
+              nf: policy
+              io.service: policy
       ports:
         - protocol: UDP
           port: 8805  # PFCP
@@ -29,16 +33,18 @@ spec:
         - protocol: SCTP
           port: 38412  # SCTP for N2 interface
         - protocol: TCP
-          port: 5000  # SCTP for N2 interface
+          port: 5000  # WebUI
   egress:
     - to:
         - podSelector:
             matchLabels:
               app: free5gc
+              nf: policy
+              io.service: policy
       ports:
         - protocol: UDP
           port: 8805
         - protocol: UDP
           port: 2152
         - protocol: SCTP
-          port: 38412  
+          port: 38412  # SCTP for N2 interface

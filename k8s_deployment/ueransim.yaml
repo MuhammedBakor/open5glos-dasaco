@@ -87,12 +87,12 @@ data:
     tac: 1 # Tracking Area Code
 
     linkIp: 127.0.0.1 # gNB's local IP address for Radio Link Simulation (Usually same with local IP)
-    ngapIp: 0.0.0.0 #gnb.free5gc.org # gNB's local IP address for N2 Interface (Usually same with local IP)
-    gtpIp: 0.0.0.0 #gnb.free5gc.org # gNB's local IP address for N3 Interface (Usually same with local IP)
+    ngapIp: 0.0.0.0  # gNB's local IP address for N2 Interface (Usually same with local IP)
+    gtpIp: 0.0.0.0  # gNB's local IP address for N3 Interface (Usually same with local IP)
 
     # List of AMF address information
     amfConfigs:
-      - address: amf-namf # amf.free5gc.org
+      - address: amf-namf 
         port: 38412
 
     # List of supported S-NSSAIs by this gNB
