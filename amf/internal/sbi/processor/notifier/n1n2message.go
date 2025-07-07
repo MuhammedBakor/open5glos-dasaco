@@ -6,10 +6,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	amf_context "github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
 	Namf_Communication "github.com/free5gc/openapi/amf/Communication"
 	"github.com/free5gc/openapi/models"
+	amf_context "github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 var HttpLog *logrus.Entry

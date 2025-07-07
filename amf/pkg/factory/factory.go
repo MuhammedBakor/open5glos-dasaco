@@ -11,7 +11,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"gopkg.in/yaml.v2"
 
-	"github.com/free5gc/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 var AmfConfig *Config

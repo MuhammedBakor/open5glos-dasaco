@@ -5,14 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/free5gc/amf/internal/context"
-	gmm_common "github.com/free5gc/amf/internal/gmm/common"
-	gmm_message "github.com/free5gc/amf/internal/gmm/message"
-	amf_nas "github.com/free5gc/amf/internal/nas"
-	"github.com/free5gc/amf/internal/nas/nas_security"
-	ngap_message "github.com/free5gc/amf/internal/ngap/message"
-	"github.com/free5gc/amf/internal/sbi/consumer"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/nas"
 	"github.com/free5gc/nas/nasMessage"
@@ -20,6 +12,14 @@ import (
 	"github.com/free5gc/ngap/ngapConvert"
 	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	gmm_common "github.com/hasukiHT/5glos/amf/internal/gmm/common"
+	gmm_message "github.com/hasukiHT/5glos/amf/internal/gmm/message"
+	amf_nas "github.com/hasukiHT/5glos/amf/internal/nas"
+	"github.com/hasukiHT/5glos/amf/internal/nas/nas_security"
+	ngap_message "github.com/hasukiHT/5glos/amf/internal/ngap/message"
+	"github.com/hasukiHT/5glos/amf/internal/sbi/consumer"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 func handleNGSetupRequestMain(ran *context.AmfRan,

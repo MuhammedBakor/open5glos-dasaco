@@ -8,10 +8,10 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/sctp"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 type NGAPHandler struct {

@@ -12,8 +12,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/nas/nasMessage"
 	"github.com/free5gc/nas/nasType"
 	"github.com/free5gc/nas/security"
@@ -22,6 +20,8 @@ import (
 	"github.com/free5gc/util/fsm"
 	"github.com/free5gc/util/idgenerator"
 	"github.com/free5gc/util/ueauth"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 type OnGoingProcedure string

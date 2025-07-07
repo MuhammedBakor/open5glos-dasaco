@@ -2,9 +2,9 @@
 package ngap
 
 import (
-	"github.com/free5gc/amf/internal/context"
-	ngap_message "github.com/free5gc/amf/internal/ngap/message"
 	"github.com/free5gc/ngap/ngapType"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	ngap_message "github.com/hasukiHT/5glos/ngap/message"
 )
 
 func dispatchMain(ran *context.AmfRan, message *ngapType.NGAPPDU) {

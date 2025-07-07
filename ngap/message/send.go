@@ -1,12 +1,12 @@
 package message
 
 import (
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
-	callback "github.com/free5gc/amf/internal/sbi/processor/notifier"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	callback "github.com/hasukiHT/5glos/amf/internal/sbi/processor/notifier"
 )
 
 func SendToRan(ran *context.AmfRan, packet []byte) {

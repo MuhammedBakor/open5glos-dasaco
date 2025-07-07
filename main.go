@@ -16,7 +16,7 @@ import (
 
 	"github.com/hasukiHT/5glos/balancer"
 	"github.com/hasukiHT/5glos/config"
-	"github.com/hasukiHT/5glos/gnbue"
+	gnbue "github.com/hasukiHT/5glos/gnb-ue"
 	"github.com/hasukiHT/5glos/kube"
 	"github.com/hasukiHT/5glos/sctp"
 	"github.com/hasukiHT/5glos/utils"

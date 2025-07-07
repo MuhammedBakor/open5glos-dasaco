@@ -15,15 +15,6 @@ import (
 	"github.com/mohae/deepcopy"
 	"github.com/pkg/errors"
 
-	"github.com/free5gc/amf/internal/context"
-	gmm_common "github.com/free5gc/amf/internal/gmm/common"
-	gmm_message "github.com/free5gc/amf/internal/gmm/message"
-	"github.com/free5gc/amf/internal/logger"
-	ngap_message "github.com/free5gc/amf/internal/ngap/message"
-	"github.com/free5gc/amf/internal/sbi/consumer"
-	callback "github.com/free5gc/amf/internal/sbi/processor/notifier"
-	"github.com/free5gc/amf/internal/util"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/nas"
 	"github.com/free5gc/nas/nasConvert"
 	"github.com/free5gc/nas/nasMessage"
@@ -34,6 +25,15 @@ import (
 	"github.com/free5gc/openapi/models"
 	Nnrf_NFDiscovery "github.com/free5gc/openapi/nrf/NFDiscovery"
 	"github.com/free5gc/util/fsm"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	gmm_common "github.com/hasukiHT/5glos/amf/internal/gmm/common"
+	gmm_message "github.com/hasukiHT/5glos/amf/internal/gmm/message"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	ngap_message "github.com/hasukiHT/5glos/amf/internal/ngap/message"
+	"github.com/hasukiHT/5glos/amf/internal/sbi/consumer"
+	callback "github.com/hasukiHT/5glos/amf/internal/sbi/processor/notifier"
+	"github.com/hasukiHT/5glos/amf/internal/util"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 const psiArraySize = 16

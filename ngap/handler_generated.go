@@ -2,11 +2,11 @@
 package ngap
 
 import (
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
-	ngap_message "github.com/free5gc/amf/internal/ngap/message"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	ngap_message "github.com/hasukiHT/5glos/ngap/message"
 )
 
 func handlerAMFConfigurationUpdate(ran *context.AmfRan, initiatingMessage *ngapType.InitiatingMessage) {

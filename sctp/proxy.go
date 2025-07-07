@@ -11,7 +11,7 @@ import (
 
 	"github.com/free5gc/sctp"
 	"github.com/hasukiHT/5glos/balancer"
-	"github.com/hasukiHT/5glos/gnbue"
+	gnbue "github.com/hasukiHT/5glos/gnb-ue"
 	"github.com/hasukiHT/5glos/ngap"
 	"github.com/hasukiHT/5glos/utils"
 )

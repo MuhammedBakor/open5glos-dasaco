@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/free5gc/amf/internal/logger"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 func SnssaiHexToModels(hexString string) (*models.Snssai, error) {

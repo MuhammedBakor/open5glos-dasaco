@@ -3,12 +3,12 @@ package message
 import (
 	"encoding/hex"
 
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/internal/util"
 	"github.com/free5gc/ngap/ngapConvert"
 	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/internal/util"
 )
 
 func AppendPDUSessionResourceSetupListSUReq(list *ngapType.PDUSessionResourceSetupListSUReq,

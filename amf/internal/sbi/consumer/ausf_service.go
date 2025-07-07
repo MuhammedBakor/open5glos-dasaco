@@ -8,12 +8,12 @@ import (
 	"strings"
 	"sync"
 
-	amf_context "github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
 	"github.com/free5gc/nas/nasType"
 	"github.com/free5gc/openapi"
 	Nausf_UEAuthentication "github.com/free5gc/openapi/ausf/UEAuthentication"
 	"github.com/free5gc/openapi/models"
+	amf_context "github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 type nausfService struct {

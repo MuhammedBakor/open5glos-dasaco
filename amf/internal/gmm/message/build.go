@@ -8,15 +8,15 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/internal/nas/nas_security"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/nas"
 	"github.com/free5gc/nas/nasConvert"
 	"github.com/free5gc/nas/nasMessage"
 	"github.com/free5gc/nas/nasType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/internal/nas/nas_security"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 func BuildDLNASTransport(ue *context.AmfUe, accessType models.AccessType, payloadContainerType uint8, nasPdu []byte,

@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	amf_context "github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
 	"github.com/free5gc/openapi/models"
+	amf_context "github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 type RouterAuthorizationCheck struct {

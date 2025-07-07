@@ -1,9 +1,9 @@
 package gmm
 
 import (
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
 	"github.com/free5gc/util/fsm"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
 )
 
 const (

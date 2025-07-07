@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/free5gc/amf/internal/context"
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/internal/util"
-	"github.com/free5gc/amf/pkg/factory"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapConvert"
 	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/internal/util"
+	"github.com/hasukiHT/5glos/amf/pkg/factory"
 )
 
 func BuildPDUSessionResourceReleaseCommand(ue *context.RanUe, nasPdu []byte,

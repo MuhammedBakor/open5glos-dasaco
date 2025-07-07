@@ -3,11 +3,11 @@ package nas
 import (
 	"fmt"
 
-	amf_context "github.com/free5gc/amf/internal/context"
-	gmm_common "github.com/free5gc/amf/internal/gmm/common"
-	"github.com/free5gc/amf/internal/logger"
-	"github.com/free5gc/amf/internal/nas/nas_security"
 	"github.com/free5gc/nas"
+	amf_context "github.com/hasukiHT/5glos/amf/internal/context"
+	gmm_common "github.com/hasukiHT/5glos/amf/internal/gmm/common"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	"github.com/hasukiHT/5glos/amf/internal/nas/nas_security"
 )
 
 func HandleNAS(ranUe *amf_context.RanUe, procedureCode int64, nasPdu []byte, initialMessage bool) {

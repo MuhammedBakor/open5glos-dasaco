@@ -3,14 +3,14 @@ package message
 import (
 	"fmt"
 
-	"github.com/free5gc/amf/internal/context"
-	gmm_common "github.com/free5gc/amf/internal/gmm/common"
-	"github.com/free5gc/amf/internal/logger"
-	ngap_message "github.com/free5gc/amf/internal/ngap/message"
-	callback "github.com/free5gc/amf/internal/sbi/processor/notifier"
 	"github.com/free5gc/nas/nasMessage"
 	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/openapi/models"
+	"github.com/hasukiHT/5glos/amf/internal/context"
+	gmm_common "github.com/hasukiHT/5glos/amf/internal/gmm/common"
+	"github.com/hasukiHT/5glos/amf/internal/logger"
+	ngap_message "github.com/hasukiHT/5glos/amf/internal/ngap/message"
+	callback "github.com/hasukiHT/5glos/amf/internal/sbi/processor/notifier"
 )
 
 // backOffTimerUint = 7 means backoffTimer is null
