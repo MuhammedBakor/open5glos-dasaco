@@ -7,9 +7,12 @@
 - [x] Check the gNB and UE registration of UERANSIM outside the cluster (for 1 AMF).
 - [x] Check the gNB and UE registration of UERANSIM inside the cluster (for multiple AMFs).
 - [x] Check the gNB and UE registration of UERANSIM outside the cluster (for multiple AMFs).
-- [ ] Proxy server: get AMF info.
-- [ ] Proxy server: intercepts messages between AMF and gNB, UE.
-- [ ] Make Dockerfile and deploy to Kubernetes.
-- [ ] Test with 1 AMF.
-- [ ] Test with multiple AMFs.
+- [x] Proxy server: get AMF info, connect AMF, and connect gNB.
+- [ ] Proxy server: NGAP decoding and parsing message.
+- [ ] Proxy server: load balancing.
+- [ ] Proxy server: mapping records between AMF and gNB, UE for forwarding messages.
+- [ ] Proxy server: traffic routing.
+- [ ] Make a Dockerfile and deploy it to Kubernetes.
+- [ ] Test outside Kubernetes cluster.
+- [ ] Test inside Kubernetes cluster
 - [ ] Documentation
