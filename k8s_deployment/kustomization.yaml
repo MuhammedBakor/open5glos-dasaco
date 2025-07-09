@@ -3,7 +3,7 @@ resources:
   - db.yaml
   - nrf.yaml
   - webui.yaml
-  - amf.yaml #amf_normal.yaml
+  - amf.yaml
   - upf.yaml
   - ausf.yaml
   - nssf.yaml
@@ -13,5 +13,4 @@ resources:
   - nef.yaml
   - chf.yaml
   - smf.yaml
-  # - loxilb-deployment.yaml
-  - ueransim.yaml
+#  - ueransim.yaml

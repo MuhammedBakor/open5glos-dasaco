@@ -1,18 +1,38 @@
 # 5GLOS Configuration File
 
-# Port for the service to listen on
-listen_port: 38412
+# This file contains the configuration settings for the 5G Load Balancing and Orchestration System (5GLOS).
+proxy:
+  listen_addr: "0.0.0.0"
+  listen_port: 38412
+  read_timeout: "30s"
+  write_timeout: "30s"
+  buffer_size: 4096
+  max_connections: 1000
+
 
 # Kubernetes namespace for 5G services
-namespace: "free5gc"
+kubernetes:
+  namespace: "free5gc"
+  amf_selector: "nf=amf"
+  pod_timeout: "5m"
+  resync_period: "30s"
+  in_cluster: false
+  kubeconfig_path: ""
 
-# AMF (Access and Mobility Management Function) label selector
-amf_label: "nf=amf"
+# Load balancer settings
+load_balancer:
+  strategy: "round-robin"  # round-robin, least-connections
+  health_check_interval: "10s"
+  session_timeout: "30m"
+  max_retries: 3
 
-# Load balancer strategy: round-robin, least-connections, random
-load_balancer_strategy: "round-robin"
-
+# Logging settings
 logging:
   level: "info"
   format: "json"
-  time_format: "2006-01-02T15:04:05Z07:00"
+  output: "stdout"
+
+metrics:
+  enabled: true
+  port: 9090
+  path: "/metrics"
