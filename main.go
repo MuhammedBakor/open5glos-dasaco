@@ -21,7 +21,7 @@ func (s *NgapServer) listenLoop(wg *sync.WaitGroup) {
 		default:
 			//accept new connection
 			//conn, err := s.srv.SCTPAccept()
-			gnb := createGnb(conn)
+			gnb := createGnb(conn, wg)
 		case <-s.done:
 			return
 		}
@@ -75,7 +75,7 @@ type Gnb struct {
 }
 
 //create a gnb and start a go routine to read data from its connection
-func createGnb(conn sctp.SCTPConn) (*GnB, error) {
+func createGnb(conn sctp.SCTPConn, wg *sync.WaitGroup) (*GnB, error) {
 	//create GnB
 	gnb := &Gnb{}
 
@@ -88,6 +88,7 @@ func createGnb(conn sctp.SCTPConn) (*GnB, error) {
 	gnb.conn = sctpConn //link Gnb to the connection
 
 	//listen to Ngap messages from AMF
+	wg.Add(1) //track one more go routine
 	go sctpConn.readLoop()
 
 	//Note: add Gnb to the list only after we send a NGAPSetupResponse
@@ -124,14 +125,14 @@ func (m *AmfManager) monitorLoop(wg *sync.WaitGroup) {
 	//TODO:
 	for {
 		//listen to event from K8s controller
-		//m.connectAmf(amfInfo)
+		//m.connectAmf(amfInfo, wg)
 		//m.deleteAmf(amfId)
 	}
 }
 
 //create an AMF, send NGapSetupRequest then start a go routin to read data from
 //its connection
-func (m *AmfManager) connectAmf(amfInfo string) error {
+func (m *AmfManager) connectAmf(amfInfo string, wg *sync.WaitGroup) error {
 	//create connection first
 	//conn := sctp.Dial ( ...)
 
@@ -149,6 +150,7 @@ func (m *AmfManager) connectAmf(amfInfo string) error {
 	amf.sendSetupRequest() //check for error
 
 	//listen to Ngap messages from AMF
+	wg.Add(1) //track one more go routine
 	go sctpConn.readLoop()
 
 	//Note: add AMF to the list only when we receive a NGapSetupResponse
