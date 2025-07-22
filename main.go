@@ -36,6 +36,14 @@ type NgapConn struct {
 	done    chan struct{}
 }
 
+func newNgapConn(conn sctp.SCTPConn, handler func(*NgapMessage) error) *NgapConn {
+	return &NgapConn{
+		conn:    conn,
+		handler: handler,
+		done:    make(chan struct{}, 1),
+	}
+}
+
 //loop to read data from connection, decode then send to handler to handle
 func (c *NgapConn) readLoop(wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -62,10 +70,38 @@ func (c *NgapConn) readLoop(wg *sync.WaitGroup) {
 
 }
 
+//send an Ngap PDU
+func (c *NgapConn) sendNgap(pdu []byte) error {
+	//call SCTP connection Write
+	return c.conn.Write(pdu)
+}
+
+func (c *NgapConn) Close() {
+	//close SCTP connection
+	c.conn.Close()
+	//send close signal
+	c.done <- struct{}{}
+}
+
 ////////////////// GNB
 type GnbManager struct {
 	gnbList map[net.Conn]*Gnb
 	mutex   sync.Mutex
+}
+
+// add an GnB
+func (m *GnbManager) add(gnb *Gnb) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.gnbList[gnb.conn] = gnb
+}
+
+func (m *GnbManager) Close() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, gnb := range m.gnbList {
+		gnb.Close()
+	}
 }
 
 type Gnb struct {
@@ -74,22 +110,31 @@ type Gnb struct {
 	mutex  sync.Mutex           //protect conccurency read/write to ueList
 }
 
+func newGnb() *Gnb {
+	return &Gnb{
+		ueList: make(map[int64]*UeContext), //Note: map must be alloated, otherwise accesing it will panic
+	}
+}
+
+// an UeContext for GnB
+func (gnb *Gnb) add(ueCtx *UeContext) {
+	gnb.mutex.Lock()
+	defer gnb.mutex.Unlock()
+	gnb.ueList[ueCtx.gnbUeId] = ueCtx
+}
+
 //create a gnb and start a go routine to read data from its connection
 func createGnb(conn sctp.SCTPConn, wg *sync.WaitGroup) (*GnB, error) {
 	//create GnB
-	gnb := &Gnb{}
+	gnb := newGnb()
 
 	//create SCTP connection wrapper
-	sctpConn := &SctpConn{
-		conn:    conn,
-		handler: gnb, //Gnb will handle NGAP message
-	}
-
-	gnb.conn = sctpConn //link Gnb to the connection
+	ngapConn := &newNgapConn(conn, gnb.handle)
+	gnb.conn = ngapConn //link Gnb to the connection
 
 	//listen to Ngap messages from AMF
 	wg.Add(1) //track one more go routine
-	go sctpConn.readLoop()
+	go ngapConn.readLoop()
 
 	//Note: add Gnb to the list only after we send a NGAPSetupResponse
 
@@ -106,27 +151,55 @@ func (gnb *Gnb) handle(msg *NgapMessage) error {
 		amf := GetAmfManager().pick() //do load balancing here
 		//create ueContext (and allocate a lbUeId)
 		ueCtx := _service.createUeContext(amf, gnb, gnbUeId)
-		//edit then forward message to AMF
-
-		//TODO: handle more Ngap message here, you dispatch to different handler
+		//edit then forward message to Amf as follows:
+		// 1. edit message
+		// 2. pdu, err := ngap.Encode(msg)
+		// 3. amf.conn.sendNgap(pdu)]
+	default:
+		//TODO: add more cases to handle other Ngap messages, you may want to dispatch to different handler
 		//functions
 	}
 
 }
 
-///////////////// AMF
-type AmfManager struct {
-	amfList map[net.Conn]*Amf
-	mutex   sync.Mutex
+func (gnb *Gnb) Close() {
+	//clean resources
+	gnb.conn.Close() //close connection
 }
 
+///////////////// AMF
+type AmfManager struct {
+	amfList     map[net.Conn]*Amf //indexed by connection
+	indexesById map[string]*Amf   //indexed by Amf identity (can be podId)
+	mutex       sync.Mutex
+}
+
+//wait for K8s events, connect to AMFs/ delete AMFs
 func (m *AmfManager) monitorLoop(wg *sync.WaitGroup) {
 	defer wg.Done()
 	//TODO:
 	for {
 		//listen to event from K8s controller
 		//m.connectAmf(amfInfo, wg)
-		//m.deleteAmf(amfId)
+		//m.remove(AmfId)
+	}
+}
+
+// add an AMF
+func (m *AmfManager) add(amf *Amf) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.amfList[amf.conn] = amf
+	m.indexesById[amf.id] = amf
+}
+
+func (m *AmfManager) remove(id string) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if amf, ok := m.indexesById[id]; ok {
+		amf.Close() //close connection and release resource
+		delete(m.amfList, amf.conn)
+		delete(m.indexesById, id)
 	}
 }
 
@@ -137,36 +210,49 @@ func (m *AmfManager) connectAmf(amfInfo string, wg *sync.WaitGroup) error {
 	//conn := sctp.Dial ( ...)
 
 	//create AMF
-	amf := &Amf{}
+	amf := newAmf(amfInfo)
 
 	//create SCTP connection wrapper
-	sctpConn := &SctpConn{
-		conn:    conn,
-		handler: amf, //AMF will handle NGAP message
-	}
+	ngapConn := &newNgapConn(conn, amf.handle)
 
-	amf.conn = sctpConn //link AMF to the connection
+	amf.conn = ngapConn //link AMF to the connection
 
 	amf.sendSetupRequest() //check for error
 
 	//listen to Ngap messages from AMF
 	wg.Add(1) //track one more go routine
-	go sctpConn.readLoop()
+	go ngapConn.readLoop()
 
 	//Note: add AMF to the list only when we receive a NGapSetupResponse
 	return nil
 }
 
+func (m *AmfManager) Close() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, amf := range m.amfList {
+		amf.Close()
+	}
+}
+
 type Amf struct {
 	conn   *NgapConn //keep for writing Ngap message
 	podIp  string
-	podId  string
+	id     string               //can be podId
 	ueList map[int64]*UeContext //index by amfUeId
 	mutex  sync.Mutex           //protect conccurency read/write to ueList
 
 	//TODO: add more attributes
 }
 
+func newAmf(amfInfo string /*add other infos*/) *Amf {
+	return &Amf{
+		//TODO: init othe attributes
+		ueList: make(map[int64]*UeContext),
+	}
+}
+
+//handle received Ngap message
 func (amf *Amf) handle(msg *NgapMessage) error {
 	switch msg.MsgType() {
 	case ngap.NgapSetupResponse:
@@ -182,11 +268,27 @@ func (amf *Amf) handle(msg *NgapMessage) error {
 
 		amf.add(ueCtx) //now add the UeContext list at this AMF
 
-		//edit then forward message to gnB
+		//edit then forward message to gnB as follows:
+		// 1. edit message
+		// 2. pdu, err := ngap.Encode(msg)
+		// 3. ueCtx.gnb.conn.sendNgap(pdu)]
 
-		//TODO: handle more Ngap message here, you dispatch to different handler
+	default:
+		//TODO: add more cases to handle other Ngap messages, you may want to dispatch to different handler
 		//functions
 	}
+}
+
+//add a new UeContext
+func (amf *Amf) add(ueCtx *UeContext) {
+	amf.mutex.Lock()
+	defer amf.mutex.Unlock()
+	amf.ueList[ueCtx.amfUeId] = ueCtx
+}
+
+func (amf *Amf) Close() {
+	//clean resources
+	amf.conn.Close() //close connection
 }
 
 /////////////////////// UE
