@@ -31,7 +31,6 @@ func (s *NgapServer) listenLoop(wg *sync.WaitGroup) {
 // represent a sctp connection to GnB or AMF
 type NgapConn struct {
 	conn    sctp.SCTPConn
-	buf     [4096]byte
 	handler func(*NgapMessage) error //to handle decoded ngap message
 	done    chan struct{}
 }
