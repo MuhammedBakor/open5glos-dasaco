@@ -312,6 +312,21 @@ type Service struct {
 	mutex   sync.Mutex           //protect read/write ueList
 }
 
+var _service *Service //singleton instance for global access
+
+//init singleton Service instance
+func initService() {
+	if _service == nil {
+		_service = &Service{
+			sctpSrv: newSctpServer(),
+			amfMan:  newAmfManager(),
+			gnbMan:  newGnbManager(),
+			ueList:  make(map[int64]*UeContext), //init map, otherwise accessing it will panic
+		}
+	}
+}
+
+//create new UeContext, allocate LbUeId, then add to the UeContext list
 func (s *Service) createUeContext(amf *Amf, gnb *Gnb, ranUeId int64) *UeContext {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -330,6 +345,7 @@ func (s *Service) createUeContext(amf *Amf, gnb *Gnb, ranUeId int64) *UeContext 
 	s.lbUeId++
 }
 
+//find UeContext given LbUeId
 func (s *Service) findUeCtx(lbUeId int64) *UeContext {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -337,8 +353,7 @@ func (s *Service) findUeCtx(lbUeId int64) *UeContext {
 	return ueCtx
 }
 
-var _service *Service //singleton instance for global access
-
+//stop all go routine and release resources
 func (s *Service) Kill() {
 	s.sctpSrv.Close()
 	s.amfManager.Close()
@@ -351,11 +366,7 @@ func main() {
 	//1. READ configuration file
 
 	//2. creat a singleton service instance which is globally accessible
-	_service = &Service{
-		sctpSrv: newSctpServer(),
-		amfMan:  newAmfManager(),
-		gnbMan:  newGnbManager(),
-	}
+	initService()
 
 	_service.wg.Add(2)
 
