@@ -32,7 +32,7 @@ data:
       format: "json"
       output: "stdout"
 
-    metrics:
-      enabled: true
-      port: 9090
-      path: "/metrics"
+    # metrics:
+    #   enabled: true
+    #   port: 9090
+    #   path: "/metrics"

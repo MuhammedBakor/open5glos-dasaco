@@ -1,5 +1,0 @@
-listenPort: 38412
-amfSelector:
-  namespace: free5gc
-  labelSelector: "nf=amf"
-

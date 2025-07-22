@@ -43,7 +43,34 @@ type ProxyContext struct {
 	NgapIPList       []string
 	NgapPort         int
 	PlmnSupportList  []PlmnSupportItem
+	// Act as RAN
+	// Mapbinding map[string]*ProxyRan
 }
+
+// type ProxyRan struct {
+// 	Name               string
+// 	NRCellIdentifier   string
+// 	PlmnRANSupportList []PlmnSupportItem
+// 	idlength           int64
+// 	tac                int64
+// 	RanPresent         int
+// 	RanId              *models.GlobalRanNodeId
+// 	SupportedTAList    []SupportedTAI
+// 	DefaultPagingDRX   string
+// 	UERetentionInfo    string
+// 	AnType             models.AccessType
+// 	RanUeList          sync.Map // RanUeNgapId as key
+// 	IPaddress          string
+// 	Port               int
+// 	Log                *log.Logger
+// }
+
+// type AMFInfo struct {
+// 	PodName      string
+// 	NodeIP       string
+// 	InternalPort int32
+// 	NodePort     int32
+// }
 
 var proxySelf = &ProxyContext{
 	Name: "AMF000",
@@ -71,23 +98,137 @@ var proxySelf = &ProxyContext{
 					Sst: 1,
 					Sd:  "010203",
 				},
+				{
+					Sst: 1,
+					Sd:  "112233",
+				},
 			},
 		},
 	},
 }
 
-// // Example of AmfRan value:
-// var ran = &AmfRan{
-// 	RanPresent:      1,
-// 	RanId:           &models.GlobalRanNodeId{PlmnId: &models.PlmnId{Mcc: "001", Mnc: "01"}, RanNodeId: "gnb-123"},
-// 	Name:            "TestRAN",
-// 	AnType:          models.AccessType__3_GPP_ACCESS,
-// 	Conn:            nil, // assign actual net.Conn when available
-// 	SupportedTAList: []SupportedTAI{}, // fill with SupportedTAI values as needed
-// 	Log:             logrus.NewEntry(logrus.New()),
+// var proxyRan = &ProxyRan{
+// 	Name:             "proxyRan",
+// 	NRCellIdentifier: "00000001", // Example NR Cell ID
+// 	PlmnRANSupportList: []PlmnSupportItem{
+// 		{
+// 			PlmnId: &models.PlmnId{
+// 				Mcc: "208",
+// 				Mnc: "93",
+// 			},
+// 			SNssaiList: []models.Snssai{
+// 				{
+// 					Sst: 1,
+// 					Sd:  "010203",
+// 				},
+// 			},
+// 		},
+// 	},
+// 	idlength:   32,
+// 	tac:        1,
+// 	RanPresent: 1,
+// 	RanId: &models.GlobalRanNodeId{
+// 		PlmnId: &models.PlmnId{
+// 			Mcc: "208",
+// 			Mnc: "93",
+// 		},
+// 		GNbId: &models.GNbId{
+// 			BitLength: 32,
+// 			GNBValue:  "\x00\x00\x00\x01",
+// 		},
+// 	},
+// 	SupportedTAList: []SupportedTAI{
+// 		{
+// 			Tai: models.Tai{
+// 				PlmnId: &models.PlmnId{
+// 					Mcc: "208",
+// 					Mnc: "93",
+// 				},
+// 				Tac: "000001",
+// 			},
+// 			SNssaiList: []models.Snssai{
+// 				{
+// 					Sst: 1,
+// 					Sd:  "010203",
+// 				},
+// 			},
+// 		},
+// 	},
+// 	AnType:    models.AccessType__3_GPP_ACCESS,
+// 	IPaddress: "0.0.0.0", // Change as needed
+// 	Port:      38412,     // Default NGAP SCTP port
+// 	Log:       log.Default(),
+// }
+
+/* to AMF
+ */
+// func getMinikubeIP() (string, error) {
+// 	out, err := exec.Command("minikube", "ip").Output()
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return strings.TrimSpace(string(out)), nil
+// }
+
+// func getAMFPodsAndPorts(clientset *kubernetes.Clientset, namespace string) ([]AMFInfo, error) {
+// 	var amfs []AMFInfo
+
+// 	// List pods with label "nf=amf"
+// 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
+// 		LabelSelector: "nf=amf",
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// List services with label "nf=amf"
+// 	svcs, err := clientset.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{
+// 		LabelSelector: "nf=amf",
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// Map pod name to node IP
+// 	podNodeIP := make(map[string]string)
+// 	for _, pod := range pods.Items {
+// 		podNodeIP[pod.Name] = pod.Status.HostIP
+// 	}
+
+// 	// Map pod name to internal port and nodeport
+// 	for _, svc := range svcs.Items {
+// 		for _, port := range svc.Spec.Ports {
+// 			if port.Name == "sctp" || port.Protocol == v1.ProtocolSCTP {
+// 				// Try to find matching pod
+// 				for range svc.Spec.Selector {
+// 					for _, pod := range pods.Items {
+// 						if pod.Labels["nf"] == "amf" {
+// 							amfs = append(amfs, AMFInfo{
+// 								PodName:      pod.Name,
+// 								NodeIP:       podNodeIP[pod.Name],
+// 								InternalPort: port.TargetPort.IntVal,
+// 								NodePort:     port.NodePort,
+// 							})
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return amfs, nil
+// }
+
+// func printAMFs(minikubeIP string, amfs []AMFInfo) {
+// 	fmt.Println("Minikube Node IP:", minikubeIP)
+// 	for _, amf := range amfs {
+// 		fmt.Printf("AMF Pod: %s, NodeIP: %s, InternalPort: %d, NodePort: %d\n",
+// 			amf.PodName, amf.NodeIP, amf.InternalPort, amf.NodePort)
+// 	}
 // }
 
 func main() {
+	// Namespace for Kubernetes resources
+	// namespace := "free5gc"
 	// Listen SCTP on 127.0.0.10:38412
 	laddr := &sctp.SCTPAddr{
 		IPAddrs: []net.IPAddr{{IP: net.ParseIP("127.0.0.10")}},
@@ -100,7 +241,9 @@ func main() {
 	defer listener.Close()
 	fmt.Println("Proxy SCTP server listening on 127.0.0.10:38412")
 
+	var wg sync.WaitGroup
 	for {
+		wg.Add(1)
 		conn, err := listener.AcceptSCTP()
 		if err != nil {
 			log.Printf("Accept error: %v", err)
@@ -117,34 +260,62 @@ func main() {
 
 		go handleConnection(ran, conn)
 	}
+
+	// minikubeIP, err := getMinikubeIP()
+	// if err != nil {
+	// 	log.Fatalf("Failed to get minikube IP: %v", err)
+	// }
+
+	// config, err := rest.InClusterConfig()
+	// if err != nil {
+	// 	// fallback to kubeconfig
+	// 	kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+	// 	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+	// 	if err != nil {
+	// 		log.Fatalf("Failed to get kubeconfig: %v", err)
+	// 	}
+	// }
+	// clientset, err := kubernetes.NewForConfig(config)
+	// if err != nil {
+	// 	log.Fatalf("Failed to create k8s client: %v", err)
+	// }
+
+	// amfs, err := getAMFPodsAndPorts(clientset, namespace)
+	// if err != nil {
+	// 	log.Fatalf("Failed to get AMF pods: %v", err)
+	// }
 }
 
 func handleConnection(ran *AmfRan, conn *sctp.SCTPConn) {
 	defer conn.Close()
 	fmt.Printf("Accepted connection from %v\n", conn.RemoteAddr())
-	// Create a new AmfRan instance
 
 	buf := make([]byte, 4096)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Printf("Read error: %v", err)
-		return
-	}
 
-	fmt.Printf("Received %d bytes from gNB\n", n)
-	ngapMsg, err := ngap.Decoder(buf[:n])
-	if err != nil {
-		log.Printf("NGAP decode error: %v", err)
-		return
-	}
+	// Keep reading until connection is closed or error occurs
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			log.Printf("Read error: %v", err)
+			return
+		}
 
-	if ngapMsg == nil {
-		log.Printf("NGAP Message is nil")
-		return
-	}
+		fmt.Printf("Received %d bytes from gNB\n", n)
+		ngapMsg, err := ngap.Decoder(buf[:n])
+		if err != nil {
+			log.Printf("NGAP decode error: %v", err)
+			continue // Continue reading instead of returning
+		}
 
-	fmt.Println("Decoded NGAP message:")
-	dispatchMain(ran, ngapMsg)
+		if ngapMsg == nil {
+			log.Printf("NGAP Message is nil")
+			continue // Continue reading instead of returning
+		}
+
+		fmt.Println("Decoded NGAP message:")
+		dispatchMain(ran, ngapMsg)
+		// fmt.Println("NGAP message dispatched successfully!")
+	}
 }
 
 // func printNGAPMessage(msg *ngapType.NGAPPDU) {
@@ -188,8 +359,8 @@ func dispatchMain(ran *AmfRan, message *ngapType.NGAPPDU) {
 		// 	handlerHandoverRequest(ran, initiatingMessage)
 		// case ngapType.ProcedureCodeHandoverPreparation:
 		// 	handlerHandoverRequired(ran, initiatingMessage)
-		// case ngapType.ProcedureCodeInitialContextSetup:
-		// 	handlerInitialContextSetupRequest(ran, initiatingMessage)
+		case ngapType.ProcedureCodeInitialContextSetup:
+			handlerInitialContextSetupRequest(ran, initiatingMessage)
 		// case ngapType.ProcedureCodeInitialUEMessage:
 		// 	handlerInitialUEMessage(ran, message, initiatingMessage)
 		// case ngapType.ProcedureCodeLocationReport:
@@ -393,6 +564,16 @@ func dispatchMain(ran *AmfRan, message *ngapType.NGAPPDU) {
 	}
 }
 
+func handlerInitialContextSetupRequest(ran *AmfRan, initiatingMessage *ngapType.InitiatingMessage) {
+	initialContextSetupRequest := initiatingMessage.Value.InitialContextSetupRequest
+	if initialContextSetupRequest == nil {
+		ran.Log.Error("InitialContextSetupRequest is nil")
+		return
+	}
+
+	ran.Log.Info("Handle InitialContextSetupRequest")
+}
+
 func handlerNGSetupRequest(ran *AmfRan, initiatingMessage *ngapType.InitiatingMessage) {
 	if initiatingMessage.Value.NGSetupRequest == nil {
 		ran.Log.Errorln("NGSetupRequest is nil")
@@ -400,18 +581,8 @@ func handlerNGSetupRequest(ran *AmfRan, initiatingMessage *ngapType.InitiatingMe
 	}
 
 	ran.Log.Infoln("Handling NGSetupRequest...")
-	// Here you would typically process the NGSetupRequest and send a response
-	// For demonstration, we will just print the request
-	ran.Log.Infof("NGSetupRequest: %+v\n", initiatingMessage.Value.NGSetupRequest)
 
-	// Simulate sending a response
-	// response := &ngapType.SuccessfulOutcome{
-	// 	ProcedureCode: ngapType.ProcedureCode{
-	// 		Value: ngapType.ProcedureCodeNGSetup,
-	// 	},
-	// 	Criticality: ngapType.Criticality{Value: ngapType.CriticalityPresentReject},
-	// }
-	// fmt.Printf("Sending NGSetupResponse: %+v\n", response)
+	ran.Log.Infof("NGSetupRequest: %+v\n", initiatingMessage.Value.NGSetupRequest)
 
 	handleNGSetupRequestMain(ran, initiatingMessage.Value.NGSetupRequest)
 }
@@ -424,9 +595,11 @@ func handleNGSetupRequestMain(ran *AmfRan, nGSetupRequest *ngapType.NGSetupReque
 		ran.Log.Errorf("Build NGSetupResponse failed : %s\n", err.Error())
 		return
 	}
+	// ran.Log.Infof("NGSetupResponse: %s", pkt)
 
 	// TODO: Pass the correct ran instance here
 	SendToRan(ran, pkt)
+	ran.Log.Infoln("Sent NGSetup Response to RAN")
 }
 
 func BuildNGSetupResponse() ([]byte, error) {
@@ -556,5 +729,17 @@ func PlmnIdNidToModelsPlmnId(plmnIdNid models.PlmnIdNid) (plmnId models.PlmnId) 
 }
 
 func handlerNGSetupResponse(ran *AmfRan, successfulOutcome *ngapType.SuccessfulOutcome) {
-	panic("unimplemented")
+	nGSetupResponse := successfulOutcome.Value.NGSetupResponse
+	if nGSetupResponse == nil {
+		ran.Log.Error("NGSetupResponse is nil")
+		return
+	}
+
+	ran.Log.Info("Handle NGSetupResponse")
+
+	handleNGSetupResponseMain(ran, nGSetupResponse)
+}
+
+func handleNGSetupResponseMain(ran *AmfRan, nGSetupResponse *ngapType.NGSetupResponse) {
+	ran.Log.Error("Handle NGSetupResponse: AMF to RAN message")
 }
