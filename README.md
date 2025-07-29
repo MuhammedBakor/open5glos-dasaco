@@ -4,23 +4,42 @@ Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer 
 
 ## Project Structure
 
-The project is organized into several directories, each serving a specific purpose:
+## Directory Structure
 
-- **cmd/proxy**: Contains the entry point of the application.
-- **internal/config**: Manages application configuration settings.
-- **internal/proxy**: Implements the core proxy server functionality, including connection management and message forwarding.
-- **internal/ngap**: Handles NGAP message processing and construction.
-- **internal/k8s**: Interacts with Kubernetes to manage AMF pod information.
-- **pkg/types**: Defines shared types and structures used throughout the application.
-- **k8s_deployment**: Kubernetes deployments of Free5gc Core network, including AMF template and automated scalable AMF.
-- **deployments**: Kuberenetes deployments of open5glos inside the cluster.
+```
+5glos/
+├── cmd/
+│   └── proxy/
+│       └── main.go           # Application entry point
+├── internal/
+│   ├── amf/
+│   │   ├── amf.go           # AMF implementation: handling messages from/to AMF.
+│   │   └── manager.go       # AMF manager for connection management.
+│   ├── config/
+│   │   ├── config.go        # Settings for deployment in Kubernetes cluster.
+│   ├── gnb/
+│   │   ├── gnb.go           # GNB implementation: handling messages from/to gNB(RAN).
+│   │   └── manager.go       # GNB manager for connection management.
+│   ├── ngap/
+│   │   ├── connection.go    # NGAP connection handling: connection wrapper and read/send NGAP message.
+│   │   └── server.go        # SCTP proxy server. 
+│   ├── service/
+│   │   └── service.go       # Main service orchestrator.
+│   ├── ue/
+│   │   └── context.go       # UE context management.
+│   └── utils/
+│       ├── kubernetes.go    # Kubernetes utilities: get minikube IP
+│       └── ngap_builders.go # NGAP message builders.
+├── go.mod
+└── go.sum           
+```
 
 ## Setup Instructions
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
-   cd ngap-proxy
+   git clone https://github.com/HasukiHT/5glos.git
+   cd 5glos
    ```
 
 2. **Install Dependencies**:
@@ -32,13 +51,13 @@ The project is organized into several directories, each serving a specific purpo
 3. **Build the Application**:
    To build the application, run:
    ```bash
-   go build -o ngap-proxy ./cmd/proxy
+   go build ./cmd/proxy
    ```
 
 4. **Run the Application**:
    Start the proxy server with:
    ```bash
-   ./ngap-proxy
+   ./proxy
    ```
 
 ## Usage
@@ -54,7 +73,6 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 
-
 ## To-Do list
 
 - [x] Check the gNB and UE registration of UERANSIM inside the cluster (for 1 AMF).
@@ -66,6 +84,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - [x] Proxy server: load balancing.
 - [x] Proxy server: mapping records between AMF and gNB, UE for forwarding messages (Setup, Registration).
 - [x] Proxy server: test one and multiple AMFs with mapping function.
+- [ ] Proxy server: Reorganize structure.
 - [ ] Proxy server: traffic routing (all messages).
 - [ ] Make a Dockerfile and deploy it to Kubernetes.
 - [ ] Test outside Kubernetes cluster.
