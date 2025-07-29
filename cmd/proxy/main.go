@@ -2,21 +2,39 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/yourusername/ngap-proxy/internal/proxy"
+	"github.com/free5gc/ngap/logger"
+	"github.com/hasukiHT/5glos/internal/service"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	namespace := "free5gc" // Change to your namespace
+	// Initialize logger
+	logger.NgapLog.Logger.SetLevel(logrus.InfoLevel)
 
-	proxyServer, err := proxy.NewProxyServer(namespace)
-	if err != nil {
-		log.Fatalf("[ERROR] Failed to create proxy server: %v", err)
-	}
-	defer proxyServer.Close()
+	// Initialize service
+	svc := service.New()
 
-	// Start the proxy server (this will block)
-	if err := proxyServer.Start(); err != nil {
-		log.Fatalf("[ERROR] Proxy server failed: %v", err)
+	// Start service
+	if err := svc.Start(); err != nil {
+		log.Fatalf("[ERROR] Failed to start service: %v", err)
 	}
+
+	// Listen to keyboard interruption
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	log.Println("[INFO] Open5GLoS proxy server started")
+	log.Println("[INFO] Press Ctrl+C to stop...")
+
+	// Wait for signal
+	<-sigChan
+	log.Println("[INFO] Shutting down...")
+
+	// Graceful shutdown
+	svc.Stop()
+	log.Println("[INFO] Server stopped")
 }

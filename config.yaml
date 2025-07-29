@@ -2,7 +2,7 @@
 
 # This file contains the configuration settings for the 5G Load Balancing and Orchestration System (5GLOS).
 proxy:
-  listen_addr: "0.0.0.0"
+  listen_addr: "127.0.0.10"
   listen_port: 38412
   read_timeout: "30s"
   write_timeout: "30s"
