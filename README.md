@@ -31,7 +31,8 @@ Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer 
 │       ├── kubernetes.go    # Kubernetes utilities: get minikube IP
 │       └── ngap_builders.go # NGAP message builders.
 ├── go.mod
-└── go.sum           
+├── go.sum
+└── Makefile             # Dockerfile
 ```
 
 ## Setup Instructions
