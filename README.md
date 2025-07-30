@@ -51,7 +51,7 @@ Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer 
 3. **Build the Application**:
    To build the application, run:
    ```bash
-   go build ./cmd/proxy
+   go build ./..
    ```
 
 4. **Run the Application**:
@@ -84,9 +84,11 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - [x] Proxy server: load balancing.
 - [x] Proxy server: mapping records between AMF and gNB, UE for forwarding messages (Setup, Registration).
 - [x] Proxy server: test one and multiple AMFs with mapping function.
-- [ ] Proxy server: Reorganize structure.
+- [x] Proxy server: Reorganize structure.
 - [ ] Proxy server: traffic routing (all messages).
 - [ ] Make a Dockerfile and deploy it to Kubernetes.
-- [ ] Test outside Kubernetes cluster.
-- [ ] Test inside Kubernetes cluster.
+- [x] Test outside Kubernetes cluster.
+- [ ] Set up environment and build to run inside Kuberenetes.
+- [ ] Test inside the Kubernetes cluster.
+- [ ] Experiment test setup.
 - [ ] Documentation.
