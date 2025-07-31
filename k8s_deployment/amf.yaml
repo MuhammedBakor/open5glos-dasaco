@@ -167,7 +167,7 @@ data:
       ngapPort: 38412 # the SCTP port listened by NGAP
       sbi: # Service-based interface information
         scheme: http # the protocol for sbi (http or https)
-        registerIPv4: 0.0.0.0 # amf-namf # IP used to register to NRF
+        registerIPv4: amf-namf # IP used to register to NRF
         bindingIPv4: 0.0.0.0 # IP used to bind the service
         port: 8000 # port used to bind the service
         tls: # the local path of TLS key

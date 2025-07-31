@@ -23,6 +23,7 @@ type Amf struct {
 	gnbManager GnbManagerInterface // Add interface dependency
 	manager    *Manager            // Reference to AMF manager
 	service    ServiceInterface    // Add service interface dependency
+	isHealthy  bool                // Health status of the AMF
 }
 
 // Add interface for Service to avoid circular dependency
@@ -45,10 +46,11 @@ type GnbInterface interface {
 
 func New(amfInfo AMFInfo) *Amf {
 	return &Amf{
-		podName:  amfInfo.PodName,
-		nodePort: amfInfo.NodePort,
-		id:       amfInfo.PodName,
-		ueList:   make(map[int64]*ue.Context),
+		podName:   amfInfo.PodName,
+		nodePort:  amfInfo.NodePort,
+		id:        amfInfo.PodName,
+		ueList:    make(map[int64]*ue.Context),
+		isHealthy: true, // Initialize as healthy
 	}
 }
 
@@ -117,11 +119,6 @@ func (amf *Amf) Handle(msg *ngapconn.NgapMessage) error {
 		}
 
 		switch initiatingMessage.ProcedureCode.Value {
-		// case ngapType.ProcedureCodeInitialContextSetup:
-		// 	log.Printf("[INFO] Handling Initial Context Setup from AMF")
-		// 	return amf.handleInitialContextSetup(initiatingMessage)
-
-		// }
 		case ngapType.ProcedureCodeDownlinkNASTransport:
 			log.Printf("[INFO] Handling Downlink NASTransport from AMF")
 			return amf.handleDownlinkNASTransport(initiatingMessage)
@@ -132,8 +129,6 @@ func (amf *Amf) Handle(msg *ngapconn.NgapMessage) error {
 		case ngapType.ProcedureCodeDownlinkNonUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeDownlinkRANConfigurationTransfer:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeDownlinkUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeOverloadStart:
 			handlerIgnoreMessage(initiatingMessage)
@@ -148,12 +143,6 @@ func (amf *Amf) Handle(msg *ngapconn.NgapMessage) error {
 		case ngapType.ProcedureCodePaging:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeRRCInactiveTransitionReport:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeUERadioCapabilityCheck:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeUERadioCapabilityInfoIndication:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
@@ -256,7 +245,7 @@ func (amf *Amf) handleDownlinkNASTransport(initiatingMessage *ngapType.Initiatin
 
 	// Replace RAN UE NGAP ID with the original GnB UE ID, keep AMF UE ID as 0 for gNB
 	newRanUeId := ueCtx.GetGnbUeId()
-	newAmfUeId := ueCtx.GetLbId() // GnB doesn't need AMF UE ID
+	newAmfUeId := ueCtx.GetLbId()
 
 	err := utils.ModifyUeIdsInMessage(pdu, newRanUeId, newAmfUeId)
 	if err != nil {
@@ -331,7 +320,7 @@ func (amf *Amf) forwardToGnB(msg *ngapconn.NgapMessage) error {
 		// Replace UE IDs with the appropriate mapping for the target gNB
 		// Use the original gNB UE ID and remove AMF UE ID (set to 0 or keep original based on message type)
 		newRanUeId := ueCtx.GetGnbUeId() // Use original gNB UE ID
-		newAmfUeId := int64(0)           // Remove AMF UE ID for gNB communication
+		newAmfUeId := ueCtx.GetLbId()    // Use LB ID for AMF
 
 		// Create a copy of the NGAPPDU for modification
 		msgCopy := *ngapPdu

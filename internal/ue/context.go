@@ -40,3 +40,18 @@ func (ue *Context) GetAmf() interface{} {
 func (ue *Context) GetGnb() interface{} {
 	return ue.gnb
 }
+
+func (ue *Context) UpdateIds(newGnbUeId, newAmfUeId int64) {
+	updated := false
+	if ue.gnbUeId != newGnbUeId {
+		ue.gnbUeId = newGnbUeId
+		updated = true
+	}
+	if ue.amfUeId != newAmfUeId {
+		ue.amfUeId = newAmfUeId
+		updated = true
+	}
+	if updated {
+		ue.lbId++
+	}
+}

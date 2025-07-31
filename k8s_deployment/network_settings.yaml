@@ -33,7 +33,7 @@ spec:
         - protocol: SCTP
           port: 38412  # SCTP for N2 interface
         - protocol: TCP
-          port: 5000  # WebUI
+          port: 5000  # Web server port
   egress:
     - to:
         - podSelector:
@@ -47,4 +47,4 @@ spec:
         - protocol: UDP
           port: 2152
         - protocol: SCTP
-          port: 38412  # SCTP for N2 interface
+          port: 38412   # SCTP for N2 interface

@@ -4,18 +4,29 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/hasukiHT/5glos/internal/ue"
 )
 
 type Manager struct {
-	gnbList map[net.Conn]*Gnb
-	mutex   sync.Mutex
+	gnbList     map[net.Conn]*Gnb
+	gnbSessions map[string]*GnBSession // Key: gNB ID
+	mutex       sync.RWMutex
+}
+
+type GnBSession struct {
+	gnb          *Gnb
+	lastActivity time.Time
+	messageCount int64
+	errorCount   int64
+	established  bool
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		gnbList: make(map[net.Conn]*Gnb),
+		gnbList:     make(map[net.Conn]*Gnb),
+		gnbSessions: make(map[string]*GnBSession),
 	}
 }
 
@@ -61,4 +72,30 @@ func (m *Manager) FindGnBByUeContext(ueCtx *ue.Context) interface{} {
 
 	log.Printf("[WARN] GnB not found for UE context with LB ID: %d", ueCtx.GetLbId())
 	return nil
+}
+
+func (m *Manager) trackGnBActivity(gnbId string) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if session, exists := m.gnbSessions[gnbId]; exists {
+		session.lastActivity = time.Now()
+		session.messageCount++
+	}
+}
+
+func (m *Manager) cleanupInactiveSessions() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	timeout := 5 * time.Minute
+	now := time.Now()
+
+	for id, session := range m.gnbSessions {
+		if now.Sub(session.lastActivity) > timeout {
+			log.Printf("[INFO] Cleaning up inactive gNB session: %s", id)
+			session.gnb.Close()
+			delete(m.gnbSessions, id)
+		}
+	}
 }

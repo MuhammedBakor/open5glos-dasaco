@@ -3,6 +3,7 @@ package service
 import (
 	"net"
 	"sync"
+	"time"
 
 	"github.com/hasukiHT/5glos/internal/amf"
 	"github.com/hasukiHT/5glos/internal/gnb"
@@ -83,21 +84,29 @@ func (a *GnBAdapter) GetName() string {
 }
 
 type Service struct {
-	amfMan  *amf.Manager
-	gnbMan  *gnb.Manager
-	sctpSrv *ngapconn.NgapServer
-	wg      sync.WaitGroup
-	lbUeId  int64
-	ueList  map[int64]*ue.Context
-	mutex   sync.Mutex
+	amfMan        *amf.Manager
+	gnbMan        *gnb.Manager
+	sctpSrv       *ngapconn.NgapServer
+	wg            sync.WaitGroup
+	lbUeId        int64
+	ueList        map[int64]*ue.Context
+	mutex         sync.RWMutex
+	ueAMFBindings map[int64]UEAMFBinding
+}
+
+type UEAMFBinding struct {
+	ueId   int64
+	amfId  string
+	expiry time.Time
 }
 
 func New() *Service {
 	return &Service{
-		sctpSrv: ngapconn.NewNgapServer(),
-		amfMan:  amf.NewManager(),
-		gnbMan:  gnb.NewManager(),
-		ueList:  make(map[int64]*ue.Context),
+		sctpSrv:       ngapconn.NewNgapServer(),
+		amfMan:        amf.NewManager(),
+		gnbMan:        gnb.NewManager(),
+		ueList:        make(map[int64]*ue.Context),
+		ueAMFBindings: make(map[int64]UEAMFBinding),
 	}
 }
 
@@ -183,6 +192,36 @@ func (s *Service) GetAmfManager() *amf.Manager {
 
 func (s *Service) GetGnbManager() *gnb.Manager {
 	return s.gnbMan
+}
+
+func (s *Service) GetAMFForUE(ueId int64) *amf.Amf {
+	s.mutex.RLock()
+	binding, exists := s.ueAMFBindings[ueId]
+	s.mutex.RUnlock()
+
+	if exists && time.Now().Before(binding.expiry) {
+		return s.amfMan.GetByID(binding.amfId)
+	}
+
+	// No binding or expired, pick new AMF
+	selectedAMF := s.amfMan.Pick()
+	if selectedAMF != nil {
+		s.bindUEToAMF(ueId, selectedAMF.GetId())
+	}
+
+	return selectedAMF
+}
+
+func (s *Service) bindUEToAMF(ueId int64, amfId string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	// Bind UE to AMF with a timeout (e.g., 60 seconds)
+	s.ueAMFBindings[ueId] = UEAMFBinding{
+		ueId:   ueId,
+		amfId:  amfId,
+		expiry: time.Now().Add(60 * time.Second),
+	}
 }
 
 // Stop all goroutines and release resources

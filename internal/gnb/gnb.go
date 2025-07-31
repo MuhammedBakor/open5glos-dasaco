@@ -91,6 +91,9 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 		case ngapType.ProcedureCodeInitialUEMessage:
 			log.Printf("[INFO] Handling InitialUEMessage from gNB")
 			return gnb.handleInitialUEMessage(initiatingMessage)
+		case ngapType.ProcedureCodeUplinkNASTransport:
+			log.Printf("[INFO] Handling UplinkNASTransport from gNB")
+			return gnb.handleUplinkNASTransport(initiatingMessage)
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeAMFStatusIndication:
@@ -98,8 +101,6 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 		case ngapType.ProcedureCodeDownlinkNonUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeDownlinkRANConfigurationTransfer:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeDownlinkUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeOverloadStart:
 			handlerIgnoreMessage(initiatingMessage)
@@ -114,12 +115,6 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 		case ngapType.ProcedureCodePaging:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeRRCInactiveTransitionReport:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeUERadioCapabilityCheck:
-			handlerIgnoreMessage(initiatingMessage)
-		case ngapType.ProcedureCodeUERadioCapabilityInfoIndication:
 			handlerIgnoreMessage(initiatingMessage)
 		case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
 			handlerIgnoreMessage(initiatingMessage)
@@ -240,7 +235,7 @@ func (gnb *Gnb) handleInitialUEMessage(initiatingMessage *ngapType.InitiatingMes
 	}
 	log.Printf("[DEBUG] Replace RAN NGAP UE ID %d to LB NGAP UE ID %d", ranUeNgapId, ueCtx.GetLbId())
 	// Modify the RAN UE NGAP ID to use our LB ID
-	err := utils.ModifyUeIdsInMessage(&pdu, ueCtx.GetLbId(), 0)
+	err := utils.ModifyUeIdsInMessage(&pdu, ueCtx.GetLbId(), ueCtx.GetAmfUeId())
 	if err != nil {
 		log.Printf("[WARN] Could not modify UE IDs, using original message: %v", err)
 	}
@@ -252,6 +247,58 @@ func (gnb *Gnb) handleInitialUEMessage(initiatingMessage *ngapType.InitiatingMes
 
 	log.Printf("[INFO] Successfully forwarded InitialUEMessage to AMF: %s", amf.GetId())
 	return amf.SendNgap(encoded)
+}
+
+func (gnb *Gnb) handleUplinkNASTransport(initiatingMessage *ngapType.InitiatingMessage) error {
+	// Forward message to AMF - the service will handle UE ID translation
+	pdu := ngapType.NGAPPDU{
+		Present:           ngapType.NGAPPDUPresentInitiatingMessage,
+		InitiatingMessage: initiatingMessage,
+	}
+
+	// Extract RAN UE NGAP ID from message
+	ranUeNgapId, amfUeNgapId, found := utils.ExtractUeIdsFromMessage(&pdu)
+
+	if !found {
+		log.Printf("[ERROR] Could not extract RAN UE NGAP ID from UplinkNASTransport")
+		ranUeNgapId = 1 // fallback
+		amfUeNgapId = 1 // fallback
+	}
+
+	// Find UE context using RAN UE NGAP ID
+	ueCtx := gnb.service.FindUeCtxByRanUeId(gnb, ranUeNgapId)
+
+	// Get the destination AMF from UE context via the AMF manager
+	// For now, just use the AMF manager to pick an AMF since we need proper interface
+	destAmf := gnb.amfManager.Pick()
+	if destAmf == nil {
+		log.Printf("[ERROR] No available AMF for UE context RAN UE NGAP ID: %d", ranUeNgapId)
+		return fmt.Errorf("no available AMF")
+	}
+
+	// Replace UE IDs: use our internal IDs for communication with AMF
+	// Use the LB ID as RAN UE NGAP ID and AMF UE NGAP ID from context
+	newRanUeNgapId := ueCtx.GetLbId()    // Use LB ID as RAN UE NGAP ID for AMF
+	newAmfUeNgapId := ueCtx.GetAmfUeId() // Use AMF UE NGAP ID from context
+
+	log.Printf("[DEBUG] Replace RAN NGAP UE ID %d to LB NGAP UE ID %d", ranUeNgapId, newRanUeNgapId)
+	log.Printf("[DEBUG] Replace LB NGAP UE ID %d to AMF NGAP UE ID %d", amfUeNgapId, newAmfUeNgapId)
+
+	// Modify the RAN UE NGAP ID to use our LB ID
+	err := utils.ModifyUeIdsInMessage(&pdu, newRanUeNgapId, newAmfUeNgapId)
+	if err != nil {
+		log.Printf("[WARN] Could not modify UE IDs, using original message: %v", err)
+	}
+
+	encoded, err := ngap.Encoder(pdu)
+	if err != nil {
+		return fmt.Errorf("encode message failed: %v", err)
+	}
+
+	log.Printf("[INFO] Forwarding message to AMF %s with modified UE IDs (Original RAN: %d, AMF: %d -> New RAN: %d, AMF: %d)",
+		destAmf.GetId(), ranUeNgapId, amfUeNgapId, newRanUeNgapId, newAmfUeNgapId)
+
+	return destAmf.SendNgap(encoded)
 }
 
 func (gnb *Gnb) forwardToAMF(msg *ngapconn.NgapMessage) error {
