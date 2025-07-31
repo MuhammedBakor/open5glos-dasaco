@@ -1,8 +1,8 @@
 # **5GLoS**: A Scaling and Load Balancing for Free5GC
 
-Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer proxy server for managing connections between AMF (Access and Mobility Management Function) and gNB (Next Generation Node B) nodes in a 5G network. This project facilitates the handling of NGAP (Next Generation Application Protocol) messages, enabling communication, and coordination between different network components, while maintaing even load distribution. Moreover, it provides a optimal solution for automated scaling AMF with unique AMF Id.
+Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer proxy server for managing connections between AMF (Access and Mobility Management Function), gNB (Next Generation Node B) nodes, and UEs (User Equipments) in a 5G network. This project facilitates the handling of NGAP (Next Generation Application Protocol) messages, enabling communication and coordination between different network components, while maintaining even load distribution. Moreover, it provides an optimal solution for automated scaling AMF with a unique AMF ID in Cloud native deployment (Kubernetes).
 
-## Project Structure
+This framework has been tested with Free5gc (5G core network) and UERANSIM (RAN-UE simulator).
 
 ## Directory Structure
 
@@ -30,9 +30,12 @@ Open5glos is a Proof-of-Concept(PoC) application that serves as a load balancer 
 │   └── utils/
 │       ├── kubernetes.go    # Kubernetes utilities: get minikube IP
 │       └── ngap_builders.go # NGAP message builders.
+├── k8_deployments      # Kubernetes to deploy Free5gc in the cloud
+├── config.yaml          # configuration file 
+├── Dockerfile          # Dockerfile
+├── Makefile            # Installation
 ├── go.mod
-├── go.sum
-└── Makefile             # Dockerfile
+└── go.sum             
 ```
 
 ## Setup Instructions
@@ -73,6 +76,9 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
+## References.
+
+If you are using it for your research or work, please cite this:
 
 ## To-Do list
 
@@ -90,6 +96,10 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - [ ] Make a Dockerfile and deploy it to Kubernetes.
 - [x] Test outside Kubernetes cluster.
 - [ ] Set up environment and build to run inside Kuberenetes.
+- [x] Experiment: one AMF, multiple UEs.
+- [ ] Experiment: five AMF, multiple UEs.
+- [ ] Experiment: one AMF, incremental multiple UEs.
+- [ ] Experiment: five AMF, incremental multiple UEs.
 - [ ] Test inside the Kubernetes cluster.
 - [ ] Experiment test setup.
 - [ ] Documentation.
