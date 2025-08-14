@@ -16,7 +16,7 @@ This framework has been tested with Free5gc (5G core network) and UERANSIM (RAN-
 │   │   ├── amf.go           # AMF implementation: handling messages from/to AMF.
 │   │   └── manager.go       # AMF manager for connection management.
 │   ├── config/
-│   │   ├── config.go        # Settings for deployment in Kubernetes cluster.
+│   │   ├── config.go        # Settings deployment using configuration YAML file.
 │   ├── gnb/
 │   │   ├── gnb.go           # GNB implementation: handling messages from/to gNB(RAN).
 │   │   └── manager.go       # GNB manager for connection management.
@@ -58,15 +58,20 @@ This framework has been tested with Free5gc (5G core network) and UERANSIM (RAN-
    go build ./..
    ```
 
-4. **Run the Application**:
+4. **Update the Open5glos IP address into UE-RAN simulator**:
+   If you run open5glos outside a Kubernetes cluster, the IP address and port by default are 127.0.0.10 and 38412. Otherwise, please find the Kubernetes IP using `minikube ip` command and the port is 38412.
+
+5. **Run the Application**:
    Start the proxy server with:
    ```bash
-   ./proxy
+   ./cmd/proxy
    ```
 
 ## Usage
 
 Once the application is running, it will listen for connections from gNB nodes and AMF instances. The proxy server will handle NGAP messages, forwarding them appropriately between the connected nodes.
+
+If you want to update 
 
 ## Contributing
 
@@ -92,14 +97,15 @@ If you are using it for your research or work, please cite this:
 - [x] Proxy server: mapping records between AMF and gNB, UE for forwarding messages (Setup, Registration).
 - [x] Proxy server: test one and multiple AMFs with mapping function.
 - [x] Proxy server: Reorganize structure.
-- [ ] Proxy server: traffic routing (all messages).
+- [x] Proxy server: traffic routing (all messages).
+- [ ] Handle message between gNB and AMF (not related to UE).
 - [ ] Make a Dockerfile and deploy it to Kubernetes.
 - [x] Test outside Kubernetes cluster.
-- [ ] Set up environment and build to run inside Kuberenetes.
+- [ ] Set up the environment and build to run inside Kubernetes.
 - [x] Experiment: one AMF, multiple UEs.
-- [ ] Experiment: five AMF, multiple UEs.
-- [ ] Experiment: one AMF, incremental multiple UEs.
-- [ ] Experiment: five AMF, incremental multiple UEs.
+- [x] Experiment: five AMF, multiple UEs.
+- [x] Experiment: one AMF, incremental multiple UEs.
+- [x] Experiment: five AMF, incremental multiple UEs.
+- [ ] Configuration file for simple deployment.
 - [ ] Test inside the Kubernetes cluster.
-- [ ] Experiment test setup.
 - [ ] Documentation.
