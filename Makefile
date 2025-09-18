@@ -1,7 +1,7 @@
 .PHONY: build clean test docker-build docker-push deploy undeploy lint
 
 # Variables
-APP_NAME = 5glos-gateway
+APP_NAME = 5glos
 VERSION ?= latest
 DOCKER_REGISTRY ?= localhost:5000
 DOCKER_IMAGE = $(DOCKER_REGISTRY)/$(APP_NAME):$(VERSION)

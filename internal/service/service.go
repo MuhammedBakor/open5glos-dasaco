@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hasukiHT/5glos/internal/amf"
+	"github.com/hasukiHT/5glos/internal/config"
 	"github.com/hasukiHT/5glos/internal/gnb"
 	ngapconn "github.com/hasukiHT/5glos/internal/ngap"
 	"github.com/hasukiHT/5glos/internal/ue"
@@ -84,6 +85,7 @@ func (a *GnBAdapter) GetName() string {
 }
 
 type Service struct {
+	config        *config.Config
 	amfMan        *amf.Manager
 	gnbMan        *gnb.Manager
 	sctpSrv       *ngapconn.NgapServer
@@ -100,9 +102,10 @@ type UEAMFBinding struct {
 	expiry time.Time
 }
 
-func New() *Service {
+func New(cfg *config.Config) *Service {
 	return &Service{
-		sctpSrv:       ngapconn.NewNgapServer(),
+		config:        cfg,
+		sctpSrv:       ngapconn.NewNgapServer(cfg.Proxy.ListenAddr, cfg.Proxy.ListenPort),
 		amfMan:        amf.NewManager(),
 		gnbMan:        gnb.NewManager(),
 		ueList:        make(map[int64]*ue.Context),

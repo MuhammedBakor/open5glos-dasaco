@@ -2089,7 +2089,7 @@ func modifyUeIdsInUnsuccessfulOutcome(msg *ngapType.UnsuccessfulOutcome, newRanU
 // Helper functions for modifying specific message types
 func modifyUeIdsInInitialUEMessage(msg *ngapType.InitialUEMessage, newRanUeNgapId, newAmfUeNgapId int64) error {
 	if msg == nil {
-		return fmt.Errorf("InitialUEMessage is nil")
+		return fmt.Errorf("Initial UE Message is nil")
 	}
 
 	for i := range msg.ProtocolIEs.List {

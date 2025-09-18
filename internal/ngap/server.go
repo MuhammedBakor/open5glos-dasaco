@@ -14,11 +14,10 @@ type NgapServer struct {
 	done     chan struct{}
 }
 
-func NewNgapServer() *NgapServer {
+func NewNgapServer(listenAddr string, listenPort int) *NgapServer {
 	laddr := &sctp.SCTPAddr{
-		IPAddrs: []net.IPAddr{{IP: net.ParseIP("127.0.0.10")}}, // Use a fixed IP for local address for RAN connections
-		// Use a base port for the server
-		Port: 38412,
+		IPAddrs: []net.IPAddr{{IP: net.ParseIP(listenAddr)}},
+		Port:    listenPort,
 	}
 	listener, err := sctp.ListenSCTP("sctp", laddr)
 	if err != nil {
@@ -33,7 +32,7 @@ func NewNgapServer() *NgapServer {
 
 func (s *NgapServer) ListenLoop(wg *sync.WaitGroup, onConnection func(net.Conn)) {
 	defer wg.Done()
-	log.Println("[INFO] SCTP server listening on 127.0.0.10:38412")
+	log.Printf("[INFO] SCTP server listening on %s:%d", s.listener.Addr().(*sctp.SCTPAddr).IPAddrs[0].IP, s.listener.Addr().(*sctp.SCTPAddr).Port)
 
 	for {
 		select {

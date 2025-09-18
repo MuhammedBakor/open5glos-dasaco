@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o 5glos-gateway ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o open5glos ./cmd
 
 FROM alpine:latest
 
@@ -23,7 +23,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the binary
-COPY --from=builder /app/5glos-gateway .
+COPY --from=builder /app/5glos .
 
 # Copy default config
 COPY --from=builder /app/config.yaml .
@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:9090/healthz || exit 1
 
 # Run the application
-CMD ["./5glos-gateway", "-config", "config.yaml"]
+CMD ["./5glos", "-config", "config.yaml"]

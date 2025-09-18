@@ -86,42 +86,43 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 
 		switch initiatingMessage.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
-			log.Printf("[INFO] Handling NGSetupRequest from gNB")
+			log.Printf("[INFO] Handling NGSetupRequest from RAN %s", gnb.name)
 			return gnb.handleNGSetupRequest(initiatingMessage)
 		case ngapType.ProcedureCodeInitialUEMessage:
-			log.Printf("[INFO] Handling InitialUEMessage from gNB")
+			log.Printf("[INFO] Handling Initial UE Message from RAN %s", gnb.name)
 			return gnb.handleInitialUEMessage(initiatingMessage)
 		case ngapType.ProcedureCodeUplinkNASTransport:
-			log.Printf("[INFO] Handling UplinkNASTransport from gNB")
+			log.Printf("[INFO] Handling Uplink NAS Transport from RAN %s", gnb.name)
 			return gnb.handleUplinkNASTransport(initiatingMessage)
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received AMF Configuration Update from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeAMFStatusIndication:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received AMFStatusIndication from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeDownlinkNonUEAssociatedNRPPaTransport:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Downlink Non-UE Associated NRPPa Transport from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeDownlinkRANConfigurationTransfer:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Downlink RAN Configuration Transfer from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeOverloadStart:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Overload Start from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeOverloadStop:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Overload Stop from RAN %s", gnb.name)
 		case ngapType.ProcedureCodePWSCancel:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received PWS Cancel from RAN %s", gnb.name)
 		case ngapType.ProcedureCodePWSFailureIndication:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received PWS Failure Indication from RAN %s", gnb.name)
 		case ngapType.ProcedureCodePWSRestartIndication:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received PWS Restart Indication from RAN %s", gnb.name)
 		case ngapType.ProcedureCodePaging:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Paging from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received RAN Configuration Update from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
-			handlerIgnoreMessage(initiatingMessage)
+			// handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Uplink Non-UE Associated NRPPa Transport from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeUplinkRANConfigurationTransfer:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Uplink RAN Configuration Transfer from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeWriteReplaceWarning:
-			handlerIgnoreMessage(initiatingMessage)
+			log.Printf("[INFO] Received Write Replace Warning from RAN %s", gnb.name)
 		default:
 			// Forward other messages to AMF
 			return gnb.forwardToAMF(msg)
@@ -134,13 +135,16 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 		}
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
-			handlerIgnoreMessage(successfulOutcome)
+			log.Printf("[INFO] Received AMF Configuration Update Acknowledge from RAN %s", gnb.name)
 		case ngapType.ProcedureCodePWSCancel:
-			handlerIgnoreMessage(successfulOutcome)
+			// handlerIgnoreMessage(successfulOutcome)
+			log.Printf("[INFO] Received PWS Cancel Acknowledge from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
-			handlerIgnoreMessage(successfulOutcome)
+			// handlerIgnoreMessage(successfulOutcome)
+			log.Printf("[INFO] Received RAN Configuration Update Acknowledge from RAN %s", gnb.name)
 		case ngapType.ProcedureCodeWriteReplaceWarning:
-			handlerIgnoreMessage(successfulOutcome)
+			// handlerIgnoreMessage(successfulOutcome)
+			log.Printf("[INFO] Received Write Replace Warning from RAN %s", gnb.name)
 		default:
 			// Forward other messages to AMF
 			return gnb.forwardToAMF(msg)
@@ -153,9 +157,10 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 		}
 		switch unsuccessfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
-			handlerIgnoreMessage(unsuccessfulOutcome)
+			log.Printf("[INFO] Received AMF Configuration Update Failure from AMF %s", gnb.name)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
-			handlerIgnoreMessage(unsuccessfulOutcome)
+			// handlerIgnoreMessage(unsuccessfulOutcome)
+			log.Printf("[INFO] Received RAN Configuration Update Failure from AMF %s", gnb.name)
 		default:
 			// Forward other messages to AMF
 			return gnb.forwardToAMF(msg)
@@ -168,21 +173,26 @@ func (gnb *Gnb) handle(msg *ngapconn.NgapMessage) error {
 
 func handlerIgnoreMessage(msg interface{}) {
 	// Log the ignored message type for debugging purposes
-	switch v := msg.(type) {
-	case *ngapType.InitiatingMessage:
-		if v != nil {
-			log.Printf("[INFO] Ignoring InitiatingMessage with ProcedureCode: %d", v.ProcedureCode.Value)
+	ngapMsg, ok := msg.(ngapType.NGAPPDU)
+	var procCode int64 = -1
+	if ok {
+		switch ngapMsg.Present {
+		case ngapType.NGAPPDUPresentInitiatingMessage:
+			if ngapMsg.InitiatingMessage != nil {
+				procCode = ngapMsg.InitiatingMessage.ProcedureCode.Value
+			}
+		case ngapType.NGAPPDUPresentSuccessfulOutcome:
+			if ngapMsg.SuccessfulOutcome != nil {
+				procCode = ngapMsg.SuccessfulOutcome.ProcedureCode.Value
+			}
+		case ngapType.NGAPPDUPresentUnsuccessfulOutcome:
+			if ngapMsg.UnsuccessfulOutcome != nil {
+				procCode = ngapMsg.UnsuccessfulOutcome.ProcedureCode.Value
+			}
 		}
-	case *ngapType.SuccessfulOutcome:
-		if v != nil {
-			log.Printf("[INFO] Ignoring SuccessfulOutcome with ProcedureCode: %d", v.ProcedureCode.Value)
-		}
-	case *ngapType.UnsuccessfulOutcome:
-		if v != nil {
-			log.Printf("[INFO] Ignoring UnsuccessfulOutcome with ProcedureCode: %d", v.ProcedureCode.Value)
-		}
-	default:
-		log.Printf("[INFO] Ignoring unknown message type: %T", msg)
+		log.Printf("[INFO] Ignoring unknown message type: %T, Present: %v, Procedure Code: %d", msg, ngapMsg.Present, procCode)
+	} else {
+		log.Printf("[INFO] Ignoring unknown message type: %T (not NGAPPDU)", msg)
 	}
 	// Intentionally ignore the message (no-op)
 }
