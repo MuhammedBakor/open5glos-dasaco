@@ -84,6 +84,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## References.
 
 If you are using it for your research or work, please cite this:
-Quang-Huy Tran, Quang Tung Thai, Namseok Ko; "Open5GLoS: Scalable Cloud-Native Architecture for Open-Source 5G Core Networks", International Conference on Information and Communication Technology Convergence (ICTC) 2025
-- [ ] Test inside the Kubernetes cluster.
-- [ ] Documentation.
+Quang-Huy Tran, Quang Tung Thai, Namseok Ko; "Open5GLoS: Scalable Cloud-Native Architecture for Open-Source 5G Core Networks", International Conference on Information and Communication Technology Convergence (ICTC) 2025.
