@@ -1,0 +1,16 @@
+resources:
+  - network_settings.yaml
+  - db.yaml
+  - nrf.yaml
+  - webui.yaml
+  - amf.yaml
+  - upf.yaml
+  - ausf.yaml
+  - nssf.yaml
+  - pcf.yaml
+  - udm.yaml
+  - udr.yaml
+  - nef.yaml
+  - chf.yaml
+  - smf.yaml
+  - ueransim.yaml

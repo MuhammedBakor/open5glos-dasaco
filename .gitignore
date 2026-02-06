@@ -30,3 +30,8 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Ignore redundant files
+ngap_git/
+sctp_git/
+loxilb/

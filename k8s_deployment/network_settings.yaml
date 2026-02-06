@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pfcp-gtpu-sctp-ngap-webserver
+  annotations:
+    version: v1.0.0
+  namespace: free5gc
+  labels:
+    app: free5gc
+    nf: policy
+    io.service: policy
+spec:
+  podSelector:
+    matchLabels:
+      app: free5gc  # Applies to all free5gc pods
+      nf: policy
+      io.service: policy
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: free5gc
+              nf: policy
+              io.service: policy
+      ports:
+        - protocol: UDP
+          port: 8805  # PFCP
+        - protocol: UDP
+          port: 2152  # GTP-U
+        - protocol: SCTP
+          port: 38412  # SCTP for N2 interface
+        - protocol: TCP
+          port: 5000  # Web server port
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: free5gc
+              nf: policy
+              io.service: policy
+      ports:
+        - protocol: UDP
+          port: 8805
+        - protocol: UDP
+          port: 2152
+        - protocol: SCTP
+          port: 38412   # SCTP for N2 interface

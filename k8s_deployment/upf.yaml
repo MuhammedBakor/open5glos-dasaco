@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    version: v1.0.0
+  labels:
+    app: free5gc
+    nf: upf
+    io.service: upf
+  name: upf-nupf
+  namespace: free5gc
+spec:
+  ports:
+    - name: "upf-nupf"
+      protocol: UDP
+      port: 8805 # PFCP control plane port
+      targetPort: 8805
+    - name: "gtpu"
+      protocol: UDP
+      port: 2152 # GTP-U user plane port
+      targetPort: 2152
+  selector:
+    app: free5gc
+    nf: upf
+    io.service: upf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    version: v1.0.0
+  labels:
+    app: free5gc
+    nf: upf
+    io.service: upf
+  name: upf
+  namespace: free5gc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: free5gc
+      nf: upf
+      io.service: upf
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        version: v1.0.0
+      labels:
+        app: free5gc
+        nf: upf
+        io.service: upf
+    spec:
+      containers:
+        - args:
+            - bash
+            - -c
+            - cp /free5gc/upf-iptables.sh /tmp/upf-iptables.sh && chmod +x /tmp/upf-iptables.sh && //tmp/upf-iptables.sh && ./upf -c /free5gc/config/upfcfg.yaml
+            # - ./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml
+          image: free5gc/upf:latest
+          name: upf
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          ports:
+            - containerPort: 8805
+              protocol: UDP
+            - containerPort: 2152
+              protocol: UDP
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          volumeMounts:
+            - mountPath: /free5gc/config/upfcfg.yaml
+              name: upf-cm0
+              subPath: upfcfg.yaml
+            - mountPath: /free5gc/upf-iptables.sh
+              name: upf-cm1
+              subPath: upf-iptables.sh
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: upfcfg.yaml
+                path: upfcfg.yaml
+            name: upf-cm0
+          name: upf-cm0
+        - configMap:
+            items:
+              - key: upf-iptables.sh
+                path: upf-iptables.sh
+            name: upf-cm1
+          name: upf-cm1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    app: free5gc
+    io.service: upf
+  name: upf-cm0
+  namespace: free5gc
+data:
+  upfcfg.yaml: |
+    version: 1.0.3
+    description: UPF initial local configuration
+
+    # The listen IP and nodeID of the N4 interface on this UPF (Can't set to 0.0.0.0)
+    pfcp:
+      addr: 0.0.0.0  # IP addr for listening
+      nodeID: upf-nupf # External IP or FQDN can be reached
+      retransTimeout: 1s # retransmission timeout
+      maxRetrans: 3 # the max number of retransmission
+
+    gtpu:
+      forwarder: gtp5g
+      # The IP list of the N3/N9 interfaces on this UPF
+      # If there are multiple connection, set addr to 0.0.0.0 or list all the addresses
+      ifList:
+        - addr: 0.0.0.0 # IP addr for listening
+          type: N3
+          # name: upf.5gc.nctu.me
+          # ifname: gtpif
+          # mtu: 1400
+
+    # The DNN list supported by UPF
+    dnnList:
+      - dnn: internet # Data Network Name
+        cidr: 10.60.0.0/16 # Classless Inter-Domain Routing for assigned IPv4 pool of UE
+        # natifname: eth0
+      - dnn: internet # Data Network Name
+        cidr: 10.61.0.0/16 # Classless Inter-Domain Routing for assigned IPv4 pool of UE
+        # natifname: eth0
+
+    logger: # log output setting
+      enable: true # true or false
+      level: info # how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+      reportCaller: false # enable the caller report or not, value: true or false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    app: free5gc
+    io.service: upf
+  name: upf-cm1
+  namespace: free5gc
+data:
+  upf-iptables.sh: |+
+    #!/bin/bash
+    #
+    # Configure iptables in UPF
+    #
+    iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+    iptables -I FORWARD 1 -j ACCEPT
+    # eth0 is the network interface for N3, enp1s0f0

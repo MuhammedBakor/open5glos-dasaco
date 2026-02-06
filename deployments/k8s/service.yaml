@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: open5glos
+  namespace: free5gc
+  labels:
+    app: free5gc
+    nf: open5glos
+    io.service: open5glos
+spec:
+  type: NodePort
+  ports:
+  - port: 38412
+    targetPort: 38412
+    nodePort: 30412
+    protocol: SCTP
+    name: ngap
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: metrics
+  selector:
+    app: free5gc
+    nf: open5glos
+    io.service: open5glos
