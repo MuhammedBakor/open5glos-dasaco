@@ -84,28 +84,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## References.
 
 If you are using it for your research or work, please cite this:
-
-## To-Do list
-
-- [x] Check the gNB and UE registration of UERANSIM inside the cluster (for 1 AMF).
-- [x] Check the gNB and UE registration of UERANSIM outside the cluster (for 1 AMF).
-- [x] Check the gNB and UE registration of UERANSIM inside the cluster (for multiple AMFs).
-- [x] Check the gNB and UE registration of UERANSIM outside the cluster (for multiple AMFs).
-- [x] Proxy server: get AMF info, connect AMF, and connect gNB.
-- [x] Proxy server: NGAP decoding and parsing message.
-- [x] Proxy server: load balancing.
-- [x] Proxy server: mapping records between AMF and gNB, UE for forwarding messages (Setup, Registration).
-- [x] Proxy server: test one and multiple AMFs with mapping function.
-- [x] Proxy server: Reorganize structure.
-- [x] Proxy server: traffic routing (all messages).
-- [ ] Handle message between gNB and AMF (not related to UE).
-- [ ] Make a Dockerfile and deploy it to Kubernetes.
-- [x] Test outside Kubernetes cluster.
-- [ ] Set up the environment and build to run inside Kubernetes.
-- [x] Experiment: one AMF, multiple UEs.
-- [x] Experiment: five AMF, multiple UEs.
-- [x] Experiment: one AMF, incremental multiple UEs.
-- [x] Experiment: five AMF, incremental multiple UEs.
-- [ ] Configuration file for simple deployment.
+Quang-Huy Tran, Quang Tung Thai, Namseok Ko; "Open5GLoS: Scalable Cloud-Native Architecture for Open-Source 5G Core Networks", International Conference on Information and Communication Technology Convergence (ICTC) 2025
 - [ ] Test inside the Kubernetes cluster.
 - [ ] Documentation.
