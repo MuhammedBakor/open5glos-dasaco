@@ -169,7 +169,7 @@ func (m *Manager) getAMFPodsAndPorts() ([]AMFInfo, error) {
 	// Map pod name to node IP
 	podNodeIP := make(map[string]string)
 	for _, pod := range pods.Items {
-		podNodeIP[pod.Name] = pod.Status.HostIP
+		podNodeIP[pod.Name] = pod.Status.PodIP
 	}
 
 	// Map services to AMF info
@@ -262,7 +262,7 @@ func (m *Manager) connectAmf(amfInfo AMFInfo) error {
 	m.amfList[key] = nil
 	m.mutex.Unlock()
 
-	addr := fmt.Sprintf("%s:%d", m.minikubeIP, amfInfo.NodePort)
+	addr := fmt.Sprintf("%s:%d", amfInfo.NodeIP, amfInfo.InternalPort)
 	raddr, err := sctp.ResolveSCTPAddr("sctp", addr)
 	if err != nil {
 		// Remove placeholder on error
@@ -279,7 +279,7 @@ func (m *Manager) connectAmf(amfInfo AMFInfo) error {
 		hash += int(c)
 	}
 	laddr := &sctp.SCTPAddr{
-		IPAddrs: []net.IPAddr{{IP: net.ParseIP("192.168.0.4")}}, // Use a fixed IP for local address
+		IPAddrs: []net.IPAddr{{IP: net.ParseIP("0.0.0.0")}}, // Use a fixed IP for local address
 		// Use a base port and add a hash to ensure uniqueness
 		Port: basePort + (hash % 1000), // Ensure port is unique per PodName
 	}

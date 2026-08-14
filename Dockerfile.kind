@@ -1,0 +1,13 @@
+FROM ubuntu:22.04
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY open5glos /app/open5glos
+RUN chmod 755 /app/open5glos
+
+USER 65532:65532
+
+ENTRYPOINT ["/app/open5glos"]
+CMD ["/etc/5glos/config.yaml"]

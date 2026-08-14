@@ -35,3 +35,10 @@ go.work.sum
 ngap_git/
 sctp_git/
 loxilb/
+# DA-SACO local build artifacts and backups
+open5glos
+open5glos-dasaco
+open5glos.before-dasaco
+*.before-dasaco
+*.bak
+main.go.legacy-disabled
