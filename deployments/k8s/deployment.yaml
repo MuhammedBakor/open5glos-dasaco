@@ -22,7 +22,7 @@ spec:
       serviceAccountName: open5glos
       containers:
       - name: open5glos
-        image: open5glos:dasaco-dynamic-admission
+        image: open5glos:dasaco-forwarding-fix
         imagePullPolicy: IfNotPresent
         args:
         - /etc/5glos/config.yaml
