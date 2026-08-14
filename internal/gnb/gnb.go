@@ -267,8 +267,24 @@ func (gnb *Gnb) handleInitialUEMessage(initiatingMessage *ngapType.InitiatingMes
 		return fmt.Errorf("encode message failed: %v", err)
 	}
 
-	log.Printf("[INFO] Successfully forwarded InitialUEMessage to AMF: %s", amf.GetId())
-	return amf.SendNgap(encoded)
+	if err := amf.SendNgap(encoded); err != nil {
+		log.Printf(
+			"[ERROR] Failed to forward InitialUEMessage to AMF %s: %v",
+			amf.GetId(),
+			err,
+		)
+		return fmt.Errorf(
+			"send InitialUEMessage to AMF %s failed: %w",
+			amf.GetId(),
+			err,
+		)
+	}
+
+	log.Printf(
+		"[INFO] Successfully forwarded InitialUEMessage to AMF: %s",
+		amf.GetId(),
+	)
+	return nil
 }
 
 func (gnb *Gnb) handleUplinkNASTransport(initiatingMessage *ngapType.InitiatingMessage) error {
