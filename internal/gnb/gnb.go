@@ -1,10 +1,12 @@
 package gnb
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
@@ -213,6 +215,16 @@ func (gnb *Gnb) handleNGSetupRequest(initiatingMessage *ngapType.InitiatingMessa
 }
 
 func (gnb *Gnb) handleInitialUEMessage(initiatingMessage *ngapType.InitiatingMessage) error {
+	// DA-SACO dynamic admission gate.
+	admissionContext, cancelAdmission := context.WithTimeout(
+		context.Background(),
+		30*time.Second,
+	)
+	defer cancelAdmission()
+
+	if err := WaitForRegistrationAdmission(admissionContext); err != nil {
+		return fmt.Errorf("registration admission failed: %v", err)
+	}
 	// Extract RAN UE NGAP ID from message
 	ranUeNgapId, _, found := utils.ExtractUeIdsFromMessage(&ngapType.NGAPPDU{
 		Present:           ngapType.NGAPPDUPresentInitiatingMessage,
@@ -278,12 +290,16 @@ func (gnb *Gnb) handleUplinkNASTransport(initiatingMessage *ngapType.InitiatingM
 	// Find UE context using RAN UE NGAP ID
 	ueCtx := gnb.service.FindUeCtxByRanUeId(gnb, ranUeNgapId)
 
-	// Get the destination AMF from UE context via the AMF manager
-	// For now, just use the AMF manager to pick an AMF since we need proper interface
-	destAmf := gnb.amfManager.Pick()
-	if destAmf == nil {
-		log.Printf("[ERROR] No available AMF for UE context RAN UE NGAP ID: %d", ranUeNgapId)
-		return fmt.Errorf("no available AMF")
+	// Preserve UE-to-AMF affinity for the complete registration procedure.
+	if ueCtx == nil {
+		log.Printf("[ERROR] UE context not found for RAN UE NGAP ID: %d", ranUeNgapId)
+		return fmt.Errorf("UE context not found")
+	}
+
+	destAmf, ok := ueCtx.GetAmf().(AMFInterface)
+	if !ok || destAmf == nil {
+		log.Printf("[ERROR] Stored AMF is unavailable for RAN UE NGAP ID: %d", ranUeNgapId)
+		return fmt.Errorf("stored AMF unavailable")
 	}
 
 	// Replace UE IDs: use our internal IDs for communication with AMF
@@ -340,12 +356,11 @@ func (gnb *Gnb) forwardToAMF(msg *ngapconn.NgapMessage) error {
 		return gnb.forwardToAnyAMF(msg)
 	}
 
-	// Get the destination AMF from UE context via the AMF manager
-	// For now, just use the AMF manager to pick an AMF since we need proper interface
-	destAmf := gnb.amfManager.Pick()
-	if destAmf == nil {
-		log.Printf("[ERROR] No available AMF for UE context RAN UE NGAP ID: %d", ranUeNgapId)
-		return fmt.Errorf("no available AMF")
+	// Preserve UE-to-AMF affinity for every UE-associated NGAP message.
+	destAmf, ok := ueCtx.GetAmf().(AMFInterface)
+	if !ok || destAmf == nil {
+		log.Printf("[ERROR] Stored AMF is unavailable for RAN UE NGAP ID: %d", ranUeNgapId)
+		return fmt.Errorf("stored AMF unavailable")
 	}
 
 	// Create a copy of the message to modify

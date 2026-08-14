@@ -11,9 +11,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: free5gc
       nf: open5glos
-      io.service: open5glos
   template:
     metadata:
       labels:
@@ -24,20 +22,29 @@ spec:
       serviceAccountName: open5glos
       containers:
       - name: open5glos
-        image: your-registry/5glos:latest  # Update this to your registry
-        imagePullPolicy: Always
+        image: open5glos:dasaco-dynamic-admission
+        imagePullPolicy: IfNotPresent
+        args:
+        - /etc/5glos/config.yaml
         ports:
         - containerPort: 38412
           name: ngap
-          protocol: TCP
+          protocol: SCTP
         - containerPort: 9090
           name: metrics
+          protocol: TCP
+        - containerPort: 9091
+          name: admission-api
           protocol: TCP
         env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: ADMISSION_MODE
+          value: "OPEN"
+        - name: ADMISSION_CONTROL_ADDRESS
+          value: ":9091"
         volumeMounts:
         - name: config
           mountPath: /etc/5glos
@@ -45,15 +52,19 @@ spec:
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 9090
-          initialDelaySeconds: 30
+            port: admission-api
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /healthz
-            port: 9090
-          initialDelaySeconds: 5
+            port: admission-api
+          initialDelaySeconds: 3
           periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 6
         resources:
           requests:
             memory: "128Mi"
