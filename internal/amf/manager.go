@@ -204,14 +204,27 @@ func (m *Manager) Add(amf *Amf) {
 
 func (m *Manager) Remove(id string) {
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	if amf, ok := m.indexesById[id]; ok {
-		amf.Close()
-		key := fmt.Sprintf("%s:%d", amf.podName, amf.nodePort)
-		delete(m.amfList, key)
-		delete(m.indexesById, id)
-		log.Printf("[INFO] Removed AMF: %s", id)
+
+	amf, exists := m.indexesById[id]
+	if !exists {
+		m.mutex.Unlock()
+		return
 	}
+
+	key := fmt.Sprintf("%s:%d", amf.podName, amf.nodePort)
+
+	delete(m.amfList, key)
+	delete(m.indexesById, id)
+	delete(m.connectionPool, id)
+
+	m.mutex.Unlock()
+
+	amf.Close()
+
+	log.Printf(
+		"[INFO] Removed disconnected AMF from manager: %s",
+		id,
+	)
 }
 
 // GetByID returns an AMF by its ID
@@ -329,7 +342,12 @@ func (m *Manager) connectAmf(amfInfo AMFInfo) error {
 
 	// Start read loop to handle incoming messages from AMF
 	m.wg.Add(1)
-	go ngapConn.ReadLoop(&m.wg, nil)
+	go ngapConn.ReadLoop(
+		&m.wg,
+		func() {
+			m.Remove(amf.id)
+		},
+	)
 
 	log.Printf("[INFO] Connected to AMF: %s, ID: %s", addr, amf.id)
 	return nil

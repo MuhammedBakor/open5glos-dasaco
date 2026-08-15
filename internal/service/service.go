@@ -214,10 +214,18 @@ func (s *Service) GetAMFForUE(ueId int64) *amf.Amf {
 	s.mutex.RUnlock()
 
 	if exists && time.Now().Before(binding.expiry) {
-		return s.amfMan.GetByID(binding.amfId)
+		selectedAMF := s.amfMan.GetByID(binding.amfId)
+
+		if selectedAMF != nil {
+			return selectedAMF
+		}
+
+		s.mutex.Lock()
+		delete(s.ueAMFBindings, ueId)
+		s.mutex.Unlock()
 	}
 
-	// No binding or expired, pick new AMF
+	// No binding, expired binding, or disconnected AMF.
 	selectedAMF := s.amfMan.Pick()
 	if selectedAMF != nil {
 		s.bindUEToAMF(ueId, selectedAMF.GetId())
