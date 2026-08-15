@@ -131,15 +131,26 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) onGnBConnection(conn net.Conn) {
-	// Create GnB and start handling
-	gnbInstance := gnb.Create(conn, &s.wg)
+	// Ensure disconnect cleanup cannot run before the gNB is added.
+	registered := make(chan struct{})
 
-	// Inject dependencies using adapter
+	// Create GnB and start handling.
+	gnbInstance := gnb.Create(
+		conn,
+		&s.wg,
+		func() {
+			<-registered
+			s.gnbMan.Remove(conn)
+		},
+	)
+
+	// Inject dependencies using adapter.
 	amfManagerAdapter := &AMFManagerAdapter{manager: s.amfMan}
 	gnbInstance.SetAMFManager(amfManagerAdapter)
 	gnbInstance.SetService(s)
 
 	s.gnbMan.Add(gnbInstance)
+	close(registered)
 }
 
 // Create new UeContext, allocate LbUeId, then add to the UeContext list

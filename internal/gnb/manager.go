@@ -46,6 +46,31 @@ func (m *Manager) Close() {
 	}
 }
 
+// Remove deletes a disconnected gNB from all manager indexes.
+// This prevents delayed AMF responses from using a closed connection.
+func (m *Manager) Remove(conn net.Conn) {
+	m.mutex.Lock()
+
+	gnbInstance, exists := m.gnbList[conn]
+	if exists {
+		delete(m.gnbList, conn)
+		delete(m.gnbSessions, gnbInstance.GetId())
+	}
+
+	m.mutex.Unlock()
+
+	if !exists {
+		return
+	}
+
+	gnbInstance.Close()
+
+	log.Printf(
+		"[INFO] Removed disconnected GnB from manager: %s",
+		gnbInstance.GetId(),
+	)
+}
+
 // Implement interface method for AMF
 func (m *Manager) GetGnBList() map[interface{}]interface{} {
 	m.mutex.Lock()

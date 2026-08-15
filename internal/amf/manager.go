@@ -329,7 +329,7 @@ func (m *Manager) connectAmf(amfInfo AMFInfo) error {
 
 	// Start read loop to handle incoming messages from AMF
 	m.wg.Add(1)
-	go ngapConn.ReadLoop(&m.wg)
+	go ngapConn.ReadLoop(&m.wg, nil)
 
 	log.Printf("[INFO] Connected to AMF: %s, ID: %s", addr, amf.id)
 	return nil

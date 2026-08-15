@@ -30,8 +30,16 @@ func NewNgapConn(conn net.Conn, handler func(*NgapMessage) error) *NgapConn {
 }
 
 // Loop to read data from connection, decode then send to handler
-func (c *NgapConn) ReadLoop(wg *sync.WaitGroup) {
+func (c *NgapConn) ReadLoop(
+	wg *sync.WaitGroup,
+	onClose func(),
+) {
 	defer wg.Done()
+
+	if onClose != nil {
+		defer onClose()
+	}
+
 	buf := make([]byte, 4096)
 
 	for {

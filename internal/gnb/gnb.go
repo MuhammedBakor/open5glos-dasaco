@@ -64,7 +64,11 @@ func (gnb *Gnb) Add(ueCtx *ue.Context) {
 }
 
 // Create a GnB and start a goroutine to read data from its connection
-func Create(conn net.Conn, wg *sync.WaitGroup) *Gnb {
+func Create(
+	conn net.Conn,
+	wg *sync.WaitGroup,
+	onClose func(),
+) *Gnb {
 	// Create GnB
 	gnb := New(fmt.Sprintf("GnB-%v", conn.RemoteAddr()))
 
@@ -74,7 +78,7 @@ func Create(conn net.Conn, wg *sync.WaitGroup) *Gnb {
 
 	// Listen to NGAP messages from GnB
 	wg.Add(1)
-	go ngapConn.ReadLoop(wg)
+	go ngapConn.ReadLoop(wg, onClose)
 
 	return gnb
 }
