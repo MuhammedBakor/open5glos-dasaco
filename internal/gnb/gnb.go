@@ -34,6 +34,7 @@ type Gnb struct {
 	conn       *ngapconn.NgapConn
 	ueList     map[int64]*ue.Context
 	mutex      sync.Mutex
+	writeMutex sync.Mutex
 	name       string
 	amfManager AMFManagerInterface // Dependency for AMF selection
 	service    ServiceInterface    // Dependency for UE context creation
@@ -446,9 +447,13 @@ func (gnb *Gnb) GetConn() net.Conn {
 
 // SendNgap implements the interface for sending NGAP messages
 func (gnb *Gnb) SendNgap(pdu []byte) error {
+	gnb.writeMutex.Lock()
+	defer gnb.writeMutex.Unlock()
+
 	if gnb.conn == nil {
 		return fmt.Errorf("GnB connection is nil")
 	}
+
 	return gnb.conn.SendNgap(pdu)
 }
 
