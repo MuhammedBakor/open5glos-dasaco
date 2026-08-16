@@ -310,6 +310,8 @@ func startAdmissionServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/admission", admissionHandler)
+	mux.HandleFunc("/runtime", runtimeHandler)
+	mux.HandleFunc("/draining", drainingHandler)
 
 	server := &http.Server{
 		Addr:              address,

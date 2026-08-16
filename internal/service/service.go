@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -131,6 +132,15 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) onGnBConnection(conn net.Conn) {
+	if gnb.IsDraining() {
+		log.Printf(
+			"[DA-SACO][DRAINING] Rejected new gNB connection from %v",
+			conn.RemoteAddr(),
+		)
+		_ = conn.Close()
+		return
+	}
+
 	// Ensure disconnect cleanup cannot run before the gNB is added.
 	registered := make(chan struct{})
 

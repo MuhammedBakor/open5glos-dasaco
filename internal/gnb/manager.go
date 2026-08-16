@@ -33,9 +33,22 @@ func NewManager() *Manager {
 // Add a GnB
 func (m *Manager) Add(gnb *Gnb) {
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	m.gnbList[gnb.GetConn()] = gnb
-	log.Printf("[INFO] Added GnB to manager")
+
+	conn := gnb.GetConn()
+	_, exists := m.gnbList[conn]
+
+	if !exists {
+		m.gnbList[conn] = gnb
+		incrementActiveGnBConnections()
+	}
+
+	active := len(m.gnbList)
+	m.mutex.Unlock()
+
+	log.Printf(
+		"[INFO] Added GnB to manager; active=%d",
+		active,
+	)
 }
 
 func (m *Manager) Close() {
@@ -65,9 +78,12 @@ func (m *Manager) Remove(conn net.Conn) {
 
 	gnbInstance.Close()
 
+	decrementActiveGnBConnections()
+
 	log.Printf(
-		"[INFO] Removed disconnected GnB from manager: %s",
+		"[INFO] Removed disconnected GnB from manager: %s; active=%d",
 		gnbInstance.GetId(),
+		ActiveGnBConnectionCount(),
 	)
 }
 
